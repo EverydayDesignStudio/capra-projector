@@ -6,7 +6,7 @@ from tkinter import Tk, Label
 from PIL import ImageTk, Image
 
 class Slideshow:
-    FILE_PATH = '4.jpg'
+    FILE_PATH = 'hike4/2.jpg'
     EXTENSION = 'jpg'
 
     def __init__(self, win):
@@ -15,31 +15,34 @@ class Slideshow:
         self.window.geometry("1280x720")
         self.window.configure(background='black')
 
-        self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH))
-        self.picture = Label(self.window, image=self.img)
-        self.picture.pack(side="bottom", fill="both", expand="yes")
+        self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
+        self.picture_label = Label(master=self.window, image=self.img)
+        self.picture_label.pack(side="bottom", fill="both", expand="yes")
 
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
 
     def showImage(self):
-        #Creates a Tkinter-compatible photo image, which can be used everywhere Tkinter expects an image object.
-        img = ImageTk.PhotoImage(Image.open(self.FILE_PATH))
-        #The Label widget is a standard Tkinter widget used to display a text or image on the screen.
-        picture = Tk.Label(self.window, image = img)
-        #The Pack geometry manager packs widgets in rows or columns.
-        picture.pack(side="bottom", fill="both", expand="yes")
+        self.img = ImageTk.PhotoImage(Image.open('hike4/4.jpg', 'r'))
+        self.picture_label.configure(image=self.img)
 
-    def leftKey(self, event):
-        sys.stdout.flush()
-        print("Decrement the count")
-        sys.stdout.flush()
+    def moveFilePointer(self):
+        print('howdy')
 
     def rightKey(self, event):
         sys.stdout.flush()
         print("Increment the count")
         sys.stdout.flush()
+        self.moveFilePointer()
+        self.showImage()
 
+    def leftKey(self, event):
+        sys.stdout.flush()
+        print("Decrement the count")
+        sys.stdout.flush()
+        self.moveFilePointer()
+        self.showImage()
+    
 # This creates the root window
 root = Tk()
 slide_show = Slideshow(root)
