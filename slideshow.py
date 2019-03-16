@@ -24,9 +24,8 @@ class Slideshow:
     COUNT = 0
     _LIMIT = 241
     
-    COUNTER = 1
+    ROTARY_COUNTER = 1
     clkLastState = GPIO.input(clk)
-    print(clkLastState)
 
     def __init__(self, win):
         self.window = win
@@ -43,38 +42,33 @@ class Slideshow:
         self.window.bind('<Right>', self.rightKey)
         
         self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-        #self.window.bind(GPIO.add_event_detect(cnt, GPIO.BOTH, callback=self.printCNT))
-        #self.window.bind(GPIO.add_event_detect(cnt, GPIO.FALLING, callback=self.printCNT))
     
     def detectedRotaryChange(self, event):
-        sys.stdout.flush()
-        print('Detected rotary change')
-        sys.stdout.flush()
-        
         clkState = GPIO.input(clk)
         cntState = GPIO.input(cnt)
         if clkState != self.clkLastState:
             if cntState != clkState:
-                self.COUNTER += 1
+                self.ROTARY_COUNTER += 1
             else:
-                self.COUNTER -= 1
-            print(self.COUNTER)
+                self.ROTARY_COUNTER -= 1
         self.clkLastState = clkState
         sleep(0.01)
         
-    def printCLK(self, event):
-        sys.stdout.flush()
-        print('Clockwise')
-        sys.stdout.flush()
-    
-    def printCNT(self, event):
-        sys.stdout.flush()
-        print('Counter')
-        sys.stdout.flush()  
+        self.buildFilePointer()
+        self.showImage()
     
     def showImage(self):
         self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
         self.picture_label.configure(image=self.img)
+        
+    def buildFilePointer(self):
+        if self.ROTARY_COUNTER > self._LIMIT:
+            self.ROTARY_COUNTER = 1
+        elif self.ROTARY_COUNTER < 1:
+            self.ROTARY_COUNTER = self._LIMIT
+        print(self.ROTARY_COUNTER)
+            
+        self.FILE_PATH = self._DIRECTORY + str(self.ROTARY_COUNTER) + self._EXTENSION
 
     def moveFilePointer(self, command):
         if command == '+':
@@ -94,16 +88,12 @@ class Slideshow:
         sys.stdout.flush()
 
     def rightKey(self, event):
-        sys.stdout.flush()
         print("Increment the count")
-        sys.stdout.flush()
         self.moveFilePointer('+')
         self.showImage()
 
     def leftKey(self, event):
-        sys.stdout.flush()
         print("Decrement the count")
-        sys.stdout.flush()
         self.moveFilePointer('-')
         self.showImage()
     
