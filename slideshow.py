@@ -2,9 +2,10 @@
 
 # Imports
 import sys
-from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from RPi import GPIO
+from time import sleep
+from tkinter import Tk, Label
 
 # Setup for GPIO
 clk = 17
@@ -14,9 +15,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-counter = 0
-clkLastState = GPIO.input(clk)
-
+# Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
     _DIRECTORY = 'hike4/'
     _EXTENSION = '.jpg'
@@ -24,6 +23,10 @@ class Slideshow:
     FILE_PATH = 'hike4/2.jpg'
     COUNT = 0
     _LIMIT = 241
+    
+    COUNTER = 1
+    clkLastState = GPIO.input(clk)
+    print(clkLastState)
 
     def __init__(self, win):
         self.window = win
@@ -39,12 +42,35 @@ class Slideshow:
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
         
-        self.window.bind(GPIO.add_event_detect(clk, GPIO.FALLING, callback=self.printSomething))
+        self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
+        #self.window.bind(GPIO.add_event_detect(cnt, GPIO.BOTH, callback=self.printCNT))
+        #self.window.bind(GPIO.add_event_detect(cnt, GPIO.FALLING, callback=self.printCNT))
     
-    def printSomething(self, event):
+    def detectedRotaryChange(self, event):
         sys.stdout.flush()
-        print('Howdy partner')
+        print('Detected rotary change')
         sys.stdout.flush()
+        
+        clkState = GPIO.input(clk)
+        cntState = GPIO.input(cnt)
+        if clkState != self.clkLastState:
+            if cntState != clkState:
+                self.COUNTER += 1
+            else:
+                self.COUNTER -= 1
+            print(self.COUNTER)
+        self.clkLastState = clkState
+        sleep(0.01)
+        
+    def printCLK(self, event):
+        sys.stdout.flush()
+        print('Clockwise')
+        sys.stdout.flush()
+    
+    def printCNT(self, event):
+        sys.stdout.flush()
+        print('Counter')
+        sys.stdout.flush()  
     
     def showImage(self):
         self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
@@ -81,7 +107,7 @@ class Slideshow:
         self.moveFilePointer('-')
         self.showImage()
     
-# This creates the root window
+# Create the root window
 root = Tk()
 slide_show = Slideshow(root)
 root.mainloop()
