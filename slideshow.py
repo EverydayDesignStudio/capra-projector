@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
 
+# Imports
 import sys
-# from tkinter import *
 from tkinter import Tk, Label
 from PIL import ImageTk, Image
+from RPi import GPIO
+
+# Setup for GPIO
+clk = 17
+cnt = 18
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+counter = 0
+clkLastState = GPIO.input(clk)
 
 class Slideshow:
     _DIRECTORY = 'hike4/'
@@ -26,7 +38,14 @@ class Slideshow:
 
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
-
+        
+        self.window.bind(GPIO.add_event_detect(clk, GPIO.FALLING, callback=self.printSomething))
+    
+    def printSomething(self, event):
+        sys.stdout.flush()
+        print('Howdy partner')
+        sys.stdout.flush()
+    
     def showImage(self):
         self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
         self.picture_label.configure(image=self.img)
