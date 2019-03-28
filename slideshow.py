@@ -58,6 +58,8 @@ class Slideshow:
         # self.the_queue = queue.Queue()
         # root.after(100, self.listen_for_results())
 
+        root.after(10, self.update_picture())
+
     # Pin A event handler
     def pin_a_rising(self):
         if self.pin_b.is_pressed:
@@ -107,6 +109,9 @@ class Slideshow:
         sys.stdout.flush()
 
         self.FILE_PATH = self._DIRECTORY + str(self.ROTARY_COUNTER) + self._EXTENSION
+        sys.stdout.flush()
+        print(self.FILE_PATH)
+        sys.stdout.flush()
 
     def moveFilePointer(self, command):
         if command == '+':
@@ -125,15 +130,20 @@ class Slideshow:
         print(self.FILE_PATH)
         sys.stdout.flush()
 
+    def update_picture(self):
+        print('hello')
+        self.showImage()
+        root.after(1, self.update_picture)
+
     def rightKey(self, event):
         print("Increment the count")
         self.moveFilePointer('+')
-        self.showImage()
+        # self.showImage()
 
     def leftKey(self, event):
         print("Decrement the count")
         self.moveFilePointer('-')
-        self.showImage()
+        # self.showImage()
 
     def listen_for_results(self):
         print('Listening for results: ')
