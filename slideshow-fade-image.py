@@ -13,7 +13,12 @@ class Slideshow:
     _EXTENSION = '.jpg'
     _DIRECTORY = 'hike4/'
     _PICTURE = 58
-    _LIMIT = 241
+    _LIMIT = 240
+
+    _CURRENT_RAW_PATH = 'hike4/1.jpg'
+    _NEXT_RAW_PATH = 'hike4/2.jpg'
+
+    _IS_FADING = False
 
     def __init__(self, win):
         self.window = win
@@ -38,16 +43,18 @@ class Slideshow:
 
         # root.after(10, self.update_picture())
 
-        self.current_raw = Image.open('hike4/1.jpg', 'r')
-        self.next_raw = Image.open('hike4/58.jpg', 'r')
-        self.new_img_raw = Image.open('hike4/1.jpg', 'r')
+        
+
+        self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
+        self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+        # self.new_img_raw = Image.open('hike4/1.jpg', 'r')
         
         self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
         self.image_label = Label(master=root, image=self.display_photo_image)
         self.image_label.pack(side='bottom', fil='both', expand='yes')
 
-        root.after(0, func=self.fade_image)
-        
+        # root.after(0, func=self.fade_image)
+
 
     def moveFilePointer(self, command):
         if command == '+':
@@ -67,15 +74,38 @@ class Slideshow:
         sys.stdout.flush()
 
 
+    def update_raw_images(self, command):
+        if command == '+':
+            if self._PICTURE + 1 > self._LIMIT:
+                self._PICTURE = 1
+            
+            self._CURRENT_RAW_PATH = self._DIRECTORY + str(self._PICTURE) + self._EXTENSION
+            self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE + 1) + self._EXTENSION
+
+            self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
+            self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+
+            self._PICTURE += 1
+
+        # elif command == '-':
+        
+        else:
+            raise Exception('command should be either '+' or '-'')
+
+
     def fade_image(self):
         print('Fading the image at alpha of: ', self.alpha)
         if self.alpha < 1.0:
-            self.new_img_raw = Image.blend(self.current_raw, self.next_raw, self.alpha)
-            self.display_photo_image = ImageTk.PhotoImage(self.new_img_raw)
+            # self._IS_FADING = True
+            self.current_raw = Image.blend(self.current_raw, self.next_raw, self.alpha)
+            self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
             self.image_label.configure(image=self.display_photo_image)
 
             self.alpha = self.alpha + 0.04
-            root.after(1, self.fade_image)
+            root.after(5, self.fade_image)
+        else:
+            # self._IS_FADING = False
+            self.alpha = 0.0
 
 
     # def showImage(self):
@@ -85,13 +115,22 @@ class Slideshow:
 
     def rightKey(self, event):
         print("Increment the count")
+        self.update_raw_images('+')
+        self.alpha = 0                      # TODO - need to adjust this in the future
+        if self._IS_FADING == False:
+            print('FADING IS FALSE')
+            print('START FADE')
+            self.fade_image()
+
         # self.moveFilePointer('+')
+        
+        # self.fade_image()
         # self.showImage()
 
 
     def leftKey(self, event):
         print("Decrement the count")
-        # self.moveFilePointer('-')
+        self.moveFilePointer('-')
         # self.showImage()
 
 
