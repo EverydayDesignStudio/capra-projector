@@ -47,13 +47,13 @@ class Slideshow:
 
         self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
         self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-        # self.new_img_raw = Image.open('hike4/1.jpg', 'r')
+        self.new_img_raw = Image.open('hike4/1.jpg', 'r')
         
         self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
         self.image_label = Label(master=root, image=self.display_photo_image)
         self.image_label.pack(side='bottom', fil='both', expand='yes')
 
-        # root.after(0, func=self.fade_image)
+        root.after(100, func=self.fade_image)
 
 
     def moveFilePointer(self, command):
@@ -79,10 +79,10 @@ class Slideshow:
             if self._PICTURE + 1 > self._LIMIT:
                 self._PICTURE = 1
             
-            self._CURRENT_RAW_PATH = self._DIRECTORY + str(self._PICTURE) + self._EXTENSION
+            # self._CURRENT_RAW_PATH = self._DIRECTORY + str(self._PICTURE) + self._EXTENSION
             self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE + 1) + self._EXTENSION
 
-            self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
+            # self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
             self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
 
             self._PICTURE += 1
@@ -101,11 +101,12 @@ class Slideshow:
             self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
             self.image_label.configure(image=self.display_photo_image)
 
-            self.alpha = self.alpha + 0.04
-            root.after(5, self.fade_image)
-        else:
+            self.alpha = self.alpha + 0.01
+            root.after(100, self.fade_image)
+        # else:
             # self._IS_FADING = False
-            self.alpha = 0.0
+            # self.alpha = 0.0
+        # root.after(1, self.fade_image)
 
 
     # def showImage(self):
@@ -116,14 +117,15 @@ class Slideshow:
     def rightKey(self, event):
         print("Increment the count")
         self.update_raw_images('+')
-        self.alpha = 0                      # TODO - need to adjust this in the future
-        if self._IS_FADING == False:
-            print('FADING IS FALSE')
-            print('START FADE')
-            self.fade_image()
+        # self.alpha = 0                      
+
+
+        # if self._IS_FADING == False:
+        #     print('FADING IS FALSE')
+        #     print('START FADE')
+        #     self.fade_image()
 
         # self.moveFilePointer('+')
-        
         # self.fade_image()
         # self.showImage()
 
