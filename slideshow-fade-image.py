@@ -12,10 +12,16 @@ from tkinter import Tk, Label       # Tkinter, GUI framework in use
 # Setup GPIO
 clk = 17
 cnt = 18
+button1 = 26
+button2 = 19
+button3 = 13
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
@@ -30,6 +36,8 @@ class Slideshow:
 
     # Initialization for rotary encoder
     clkLastState = GPIO.input(clk)
+    # Used exclusively for testing
+    _ROTARY_COUNT = 1
 
 
     def __init__(self, win):
@@ -43,7 +51,10 @@ class Slideshow:
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
         self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-        
+        self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
+        self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
+        self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
+
         # Initialization for images and associated properties
         self.alpha = 0
         self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
@@ -90,8 +101,8 @@ class Slideshow:
             self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
             self.image_label.configure(image=self.display_photo_image)
 
-            self.alpha = self.alpha + 0.1
-        root.after(100, self.fade_image)
+            self.alpha = self.alpha + 0.01
+        root.after(10, self.fade_image)
 
 
     # Detects right key press
@@ -112,22 +123,38 @@ class Slideshow:
 
     # Detects rotary encoder change
     def detectedRotaryChange(self, event):
-        print("Rotary changed")
         clkState = GPIO.input(clk)
         cntState = GPIO.input(cnt)
         if clkState != self.clkLastState:
             # Increment
-            if cntState != clkState:    
+            if cntState != clkState:
+                self._ROTARY_COUNT += 1
+                print("Rotary +: ", self._ROTARY_COUNT)
                 self.update_raw_images('+')
                 # Sets amount of fade between pictures
                 self.alpha = .2
             # Decrement
-            else:                       
+            else:
+                self._ROTARY_COUNT -= 1
+                print("Rotary -: ", self._ROTARY_COUNT)
                 self.update_raw_images('-')
                 # Sets amount of fade between pictures
                 self.alpha = .2
         self.clkLastState = clkState
         # sleep(0.1)
+
+
+    # Detect button presses
+    def button1_pressed(self, event):
+        print('Button 1 pressed')
+
+
+    def button2_pressed(self, event):
+        print('Button 2 pressed')
+
+
+    def button3_pressed(self, event):
+        print('Button 3 pressed')
 
 
 # Create the root window
