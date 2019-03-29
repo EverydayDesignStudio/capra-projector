@@ -1,157 +1,134 @@
 #!/usr/bin/env python3
 
 # Imports
-import sys
-from PIL import ImageTk, Image
-from time import sleep
-from tkinter import Tk, Label
-import queue
+#import queue                       # Queue functions for threading
+import sys                          # System functions
+from gpiozero import Button       # Rotary encoder, detected as button
+from PIL import ImageTk, Image      # Pillow image functions
+from RPi import GPIO                # GPIO pin detection for Raspberry Pi
+from time import sleep              # sleeping functions
+from tkinter import Tk, Label       # Tkinter, GUI framework in use
+
+# Setup GPIO
+clk = 17
+cnt = 18
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
+    # Setup for the batch of images
+    # TODO - this will be changed when connected with database
     _EXTENSION = '.jpg'
     _DIRECTORY = 'hike4/'
-    _PICTURE = 58
+    _PICTURE = 1
     _LIMIT = 240
-
     _CURRENT_RAW_PATH = 'hike4/1.jpg'
     _NEXT_RAW_PATH = 'hike4/2.jpg'
 
-    _IS_FADING = False
+    # Initialization for rotary encoder
+    clkLastState = GPIO.input(clk)
+
 
     def __init__(self, win):
+        # Setup the window
         self.window = win
         self.window.title("Capra")
         self.window.geometry("1280x720")
         self.window.configure(background='red')
 
-        self.alpha = 0
-
-        # self.moveFilePointer('+')
-        # self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
-        # self.picture_label = Label(master=self.window, image=self.img)
-        # self.picture_label.pack(side="bottom", fill="both", expand="yes")
-
-        
-
+        # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
-
-        # self.the_queue = queue.Queue()
-        # root.after(100, self.listen_for_results())
-
-        # root.after(10, self.update_picture())
-
+        self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
         
-
+        # Initialization for images and associated properties
+        self.alpha = 0
         self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
         self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-        self.new_img_raw = Image.open('hike4/1.jpg', 'r')
         
+        # Display the first image to the screen
         self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
         self.image_label = Label(master=root, image=self.display_photo_image)
         self.image_label.pack(side='bottom', fil='both', expand='yes')
 
+        # Start continual fading function, will loop for life of the class
         root.after(100, func=self.fade_image)
 
 
-    def moveFilePointer(self, command):
-        if command == '+':
-            self._PICTURE += 1
-            if self._PICTURE > self._LIMIT:
-                self._PICTURE = 1
-        elif command == '-':
-            self._PICTURE -= 1
-            if self._PICTURE < 1:
-                self._PICTURE = self._LIMIT
-        else:
-            raise Exception('command should be either '+' or '-'')
-
-        self.FILE_PATH = self._DIRECTORY + str(self._PICTURE) + self._EXTENSION
-        sys.stdout.flush()
-        print(self.FILE_PATH)
-        sys.stdout.flush()
-
-
+    # Updates the pointer to the NEXT image
+    # command could be a '+' or '-' move in the database
     def update_raw_images(self, command):
         if command == '+':
             if self._PICTURE + 1 > self._LIMIT:
                 self._PICTURE = 1
-            
-            # self._CURRENT_RAW_PATH = self._DIRECTORY + str(self._PICTURE) + self._EXTENSION
+
             self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE + 1) + self._EXTENSION
-
-            # self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
             self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-
             self._PICTURE += 1
 
-        # elif command == '-':
+        elif command == '-':
+            if self._PICTURE < 2:
+                self._PICTURE = self._LIMIT
+
+            self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE - 1) + self._EXTENSION
+            self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+            self._PICTURE -= 1
         
         else:
             raise Exception('command should be either '+' or '-'')
 
 
+    # Loops for the life of the program, fading between the current image
+    # and the NEXT image
     def fade_image(self):
         print('Fading the image at alpha of: ', self.alpha)
         if self.alpha < 1.0:
-            # self._IS_FADING = True
             self.current_raw = Image.blend(self.current_raw, self.next_raw, self.alpha)
             self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
             self.image_label.configure(image=self.display_photo_image)
 
-            self.alpha = self.alpha + 0.01
-            root.after(100, self.fade_image)
-        # else:
-            # self._IS_FADING = False
-            # self.alpha = 0.0
-        # root.after(1, self.fade_image)
+            self.alpha = self.alpha + 0.1
+        root.after(100, self.fade_image)
 
 
-    # def showImage(self):
-    #     self.img = ImageTk.PhotoImage(Image.open(self.FILE_PATH, 'r'))
-    #     self.picture_label.configure(image=self.img)
-
-
+    # Detects right key press
     def rightKey(self, event):
-        print("Increment the count")
+        print('increment the count')
         self.update_raw_images('+')
-        self.alpha = .2                      
+        # Sets amount of fade between pictures
+        self.alpha = .2
 
 
-        # if self._IS_FADING == False:
-        #     print('FADING IS FALSE')
-        #     print('START FADE')
-        #     self.fade_image()
-
-        # self.moveFilePointer('+')
-        # self.fade_image()
-        # self.showImage()
-
-
+    # Detects left key press
     def leftKey(self, event):
-        print("Decrement the count")
-        self.moveFilePointer('-')
-        # self.showImage()
+        print("decrement the count")
+        self.update_raw_images('-')
+        # Sets amount of fade between pictures
+        self.alpha = .2
 
 
-    # Loops
-    # def update_picture(self):
-    #     print('checking for new image')
-    #     self.showImage()
-    #     root.after(10, self.update_picture)
+    # Detects rotary encoder change
+    def detectedRotaryChange(self, event):
+        print("Rotary changed")
+        clkState = GPIO.input(clk)
+        cntState = GPIO.input(cnt)
+        if clkState != self.clkLastState:
+            # Increment
+            if cntState != clkState:    
+                self.update_raw_images('+')
+                # Sets amount of fade between pictures
+                self.alpha = .2
+            # Decrement
+            else:                       
+                self.update_raw_images('-')
+                # Sets amount of fade between pictures
+                self.alpha = .2
+        self.clkLastState = clkState
+        # sleep(0.1)
 
-
-    # def listen_for_results(self):
-    #     print('Listening for results: ')
-    #     try:
-    #         message = self.the_queue.get()
-    #         print(message)
-    #         # root.after(100, self.listen_for_results())
-    #     except queue.Empty:
-    #         root.after(100, self.listen_for_results())
-    
 
 # Create the root window
 root = Tk()
