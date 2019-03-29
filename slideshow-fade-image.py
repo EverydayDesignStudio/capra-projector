@@ -117,7 +117,7 @@ class Slideshow:
     def rightKey(self, event):
         print("Increment the count")
         self.update_raw_images('+')
-        # self.alpha = 0                      
+        self.alpha = .2                      
 
 
         # if self._IS_FADING == False:
