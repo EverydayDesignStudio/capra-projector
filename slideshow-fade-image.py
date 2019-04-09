@@ -5,7 +5,7 @@
 import sys                          # System functions
 from gpiozero import Button       # Rotary encoder, detected as button
 from PIL import ImageTk, Image      # Pillow image functions
-from RPi import GPIO                # GPIO pin detection for Raspberry Pi
+# from RPi import GPIO                # GPIO pin detection for Raspberry Pi
 from time import sleep              # sleeping functions
 from tkinter import Tk, Label       # Tkinter, GUI framework in use
 
@@ -15,13 +15,13 @@ cnt = 18
 button1 = 26
 button2 = 19
 button3 = 13
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
@@ -35,9 +35,9 @@ class Slideshow:
     _NEXT_RAW_PATH = 'hike4/2.jpg'
 
     # Initialization for rotary encoder
-    clkLastState = GPIO.input(clk)
-    # Used exclusively for testing
-    _ROTARY_COUNT = 1
+    # clkLastState = GPIO.input(clk)
+    
+    _ROTARY_COUNT = 1       # Used exclusively for testing
 
 
     def __init__(self, win):
@@ -50,10 +50,16 @@ class Slideshow:
         # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
         self.window.bind('<Right>', self.rightKey)
-        self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-        self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
-        self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
-        self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
+        self.window.bind('<space>', self.space_key)
+        self.window.bind('<z>', self.z_key)
+        self.window.bind('<x>', self.x_key)
+        self.window.bind('<c>', self.c_key)
+        self.window.bind('<v>', self.v_key)
+
+        # self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
+        # self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
+        # self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
+        # self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
 
         # Initialization for images and associated properties
         self.alpha = 0
@@ -102,7 +108,7 @@ class Slideshow:
             self.image_label.configure(image=self.display_photo_image)
 
             self.alpha = self.alpha + 0.01
-        root.after(10, self.fade_image)
+        root.after(15, self.fade_image)
 
 
     # Detects right key press
@@ -119,6 +125,29 @@ class Slideshow:
         self.update_raw_images('-')
         # Sets amount of fade between pictures
         self.alpha = .2
+
+
+    def space_key(self, event):
+        print('space key pressed')
+        
+
+    def z_key(self, event):
+        print('Z key pressed')
+        self._DIRECTORY = 'hike1/'
+
+    def x_key(self, event):
+        print('X key pressed')
+        self._DIRECTORY = 'hike2/'
+
+    
+    def c_key(self, event):
+        print('C key pressed')
+        self._DIRECTORY = 'hike3/'
+
+
+    def v_key(self, event):
+        print('V key pressed')
+        self._DIRECTORY = 'hike4/'
 
 
     # Detects rotary encoder change
