@@ -147,14 +147,17 @@ class Slideshow:
     # Detect button presses
     def button1_pressed(self, event):
         print('Button 1 pressed')
+        #_DIRECTORY = 'hike4/'
 
 
     def button2_pressed(self, event):
         print('Button 2 pressed')
+        #_DIRECTORY = 'hike1/'
 
 
     def button3_pressed(self, event):
         print('Button 3 pressed')
+        #_DIRECTORY = 'hike2/'
 
 
 # Create the root window
