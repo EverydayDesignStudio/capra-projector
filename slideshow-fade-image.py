@@ -117,14 +117,14 @@ class Slideshow:
             if self.PICTURE + 1 > self.LIMIT:
                 self.PICTURE = 1
 
-            self._help_build_next_raw_images(self.PICTURE)
+            self._help_build_next_raw_images(self.PICTURE + 1)
             self.PICTURE += 1
 
         elif command == '-':
             if self.PICTURE < 2:
                 self.PICTURE = self.LIMIT
 
-            self._help_build_next_raw_images(self.PICTURE)
+            self._help_build_next_raw_images(self.PICTURE - 1)
             self.PICTURE -= 1
         
         else:
@@ -133,29 +133,38 @@ class Slideshow:
 
     # Takes the current picture count and updates the next raw images
     def _help_build_next_raw_images(self, current_count):
-        # self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count + 1) + self.CAM3 + self.EXTENSION
-        # next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
-        # self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count) + self.CAM3 + self.EXTENSION
+        next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
+        self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
-        self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count + 1) + self.CAM2 + self.EXTENSION
+        self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count) + self.CAM2 + self.EXTENSION
         next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
         self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
-        # self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count + 1) + self.CAM1 + self.EXTENSION
-        # next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
-        # self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count) + self.CAM1 + self.EXTENSION
+        next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
+        self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
 
-    # Loops for the life of the program, fading between the current image
-    # and the NEXT image
+    # Loops for the life of the program, fading between the current image and the NEXT image
     def fade_image(self):
         print('Fading the image at alpha of: ', self.alpha)
         if self.alpha < 1.0:
+
+            # Top image
+            self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
+            self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
+            self.image_label_top.configure(image=self.display_photo_image_top)
 
             # Middle image
             self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
             self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
             self.image_label_mid.configure(image=self.display_photo_image_mid)
+
+            # Bottom image
+            self.current_raw_bot = Image.blend(self.current_raw_bot, self.next_raw_bot, self.alpha)
+            self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
+            self.image_label_bot.configure(image=self.display_photo_image_bot)
 
             self.alpha = self.alpha + 0.01
         root.after(20, self.fade_image)
