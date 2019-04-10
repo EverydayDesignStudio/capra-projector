@@ -28,24 +28,27 @@ class Slideshow:
     # Setup for the batch of images
     # TODO - these will be changed when connected with database
     EXTENSION = '.jpg'
-    # DIRECTORY = 'hike10/'
     DIRECTORY = 'hike10-edited/'
-    CAM1 = '_cam1'
-    CAM2 = '_cam2'
-    CAM3 = '_cam3'
-    PICTURE = 2
-    LIMIT = 48
+    CAM_TOP = '_cam3'
+    CAM_MID = '_cam2'
+    CAM_BOT = '_cam1'
 
+    PICTURE = 1                 # 2nd image in directory
+    LIMIT = 48                  # 1 less than total amount of images
+    
+    TRANSITION_DELAY = 1500     # time between pictures in miliseconds
+    IS_TRANSITION_FORWARD = True
+    
     # CURRENT_RAW_PATH = DIRECTORY + '1' + EXTENSION
     # NEXT_RAW_PATH = DIRECTORY + '2' + EXTENSION
 
-    CURRENT_RAW_PATH_TOP = DIRECTORY + '1' + CAM3 + EXTENSION
-    CURRENT_RAW_PATH_MID = DIRECTORY + '1' + CAM2 + EXTENSION
-    CURRENT_RAW_PATH_BOT = DIRECTORY + '1' + CAM1 + EXTENSION
+    CURRENT_RAW_PATH_TOP = DIRECTORY + '1' + CAM_TOP + EXTENSION
+    CURRENT_RAW_PATH_MID = DIRECTORY + '1' + CAM_MID + EXTENSION
+    CURRENT_RAW_PATH_BOT = DIRECTORY + '1' + CAM_BOT + EXTENSION
 
-    NEXT_RAW_PATH_TOP = DIRECTORY + '2' + CAM3 + EXTENSION
-    NEXT_RAW_PATH_MID = DIRECTORY + '2' + CAM2 + EXTENSION
-    NEXT_RAW_PATH_BOT = DIRECTORY + '2' + CAM1 + EXTENSION
+    NEXT_RAW_PATH_TOP = DIRECTORY + '2' + CAM_TOP + EXTENSION
+    NEXT_RAW_PATH_MID = DIRECTORY + '2' + CAM_MID + EXTENSION
+    NEXT_RAW_PATH_BOT = DIRECTORY + '2' + CAM_BOT + EXTENSION
 
     # Initialization for rotary encoder
     # clkLastState = GPIO.input(clk)
@@ -100,7 +103,8 @@ class Slideshow:
         self.image_label_bot.pack(side='right', fill='both', expand='yes')
 
         # Start continual fading function, will loop for life of the class
-        root.after(100, func=self.fade_image)
+        root.after(0, func=self.fade_image)
+        root.after(self.TRANSITION_DELAY, func=self.auto_increment_slideshow)
 
 
     # Updates the pointer to the NEXT image
@@ -126,17 +130,14 @@ class Slideshow:
 
     # Takes the current picture count and updates the next raw images
     def _help_build_next_raw_images(self, current_count):
-        self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count) + self.CAM3 + self.EXTENSION
+        self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count) + self.CAM_TOP + self.EXTENSION
         self.next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
-        # self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
-        self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count) + self.CAM2 + self.EXTENSION
+        self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count) + self.CAM_MID + self.EXTENSION
         self.next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
-        # self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
-        self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count) + self.CAM1 + self.EXTENSION
+        self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count) + self.CAM_BOT + self.EXTENSION
         self.next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
-        # self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
 
     # Loops for the life of the program, fading between the current image and the NEXT image
@@ -161,21 +162,32 @@ class Slideshow:
             self.alpha = self.alpha + 0.01
         root.after(20, self.fade_image)
 
+    
+    def auto_increment_slideshow(self):
+        print('Auto incremented slideshow')
+        if self.IS_TRANSITION_FORWARD:
+            self.update_raw_images('+')
+            self.alpha = .2
+        else:
+            self.update_raw_images('-')
+            self.alpha = .2
+        
+        root.after(self.TRANSITION_DELAY, self.auto_increment_slideshow)
 
-    # Detects right key press
+
+    # KEYBOARD KEYS
     def rightKey(self, event):
         print('increment the count')
+        self.IS_TRANSITION_FORWARD = True
         self.update_raw_images('+')
-        # Sets amount of fade between pictures
-        self.alpha = .2
+        self.alpha = .2     # Resets amount of fade between pictures
 
 
-    # Detects left key press
     def leftKey(self, event):
         print("decrement the count")
+        self.IS_TRANSITION_FORWARD = False
         self.update_raw_images('-')
-        # Sets amount of fade between pictures
-        self.alpha = .2
+        self.alpha = .2     # Resets amount of fade between pictures
 
 
     def space_key(self, event):
@@ -201,7 +213,7 @@ class Slideshow:
         self.DIRECTORY = 'hike4/'
 
 
-    # Detects rotary encoder change
+    # HARDWARE CONTROLS
     def detectedRotaryChange(self, event):
         clkState = GPIO.input(clk)
         cntState = GPIO.input(cnt)
@@ -210,21 +222,20 @@ class Slideshow:
             if cntState != clkState:
                 self.ROTARY_COUNT += 1
                 print("Rotary +: ", self.ROTARY_COUNT)
+                self.IS_TRANSITION_FORWARD = True   # For auto slideshow    
                 self.update_raw_images('+')
-                # Sets amount of fade between pictures
-                self.alpha = .2
+                self.alpha = .2     # Resets amount of fade between pictures
             # Decrement
             else:
                 self.ROTARY_COUNT -= 1
                 print("Rotary -: ", self.ROTARY_COUNT)
+                self.IS_TRANSITION_FORWARD = False  # For auto slideshow
                 self.update_raw_images('-')
-                # Sets amount of fade between pictures
-                self.alpha = .2
+                self.alpha = .2     # Resets amount of fade between pictures
         self.clkLastState = clkState
         # sleep(0.1)
 
 
-    # Detect button presses
     def button1_pressed(self, event):
         print('Button 1 pressed')
         self.DIRECTORY = 'hike1/'
