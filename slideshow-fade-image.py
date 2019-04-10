@@ -26,18 +26,29 @@ button3 = 13
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
     # Setup for the batch of images
-    # TODO - this will be changed when connected with database
-    _EXTENSION = '.jpg'
-    _DIRECTORY = 'hike4/'
-    _PICTURE = 2
-    _LIMIT = 240
-    _CURRENT_RAW_PATH = 'hike4/1.jpg'
-    _NEXT_RAW_PATH = 'hike4/2.jpg'
+    # TODO - these will be changed when connected with database
+    EXTENSION = '.jpg'
+    DIRECTORY = 'hike10/'
+    CAM1 = '_cam1'
+    CAM2 = '_cam2'
+    CAM3 = '_cam3'
+    PICTURE = 2
+    LIMIT = 48
+
+    # CURRENT_RAW_PATH = DIRECTORY + '1' + EXTENSION
+    # NEXT_RAW_PATH = DIRECTORY + '2' + EXTENSION
+
+    CURRENT_RAW_PATH_TOP = DIRECTORY + '1' + CAM3 + EXTENSION
+    CURRENT_RAW_PATH_MID = DIRECTORY + '1' + CAM2 + EXTENSION
+    CURRENT_RAW_PATH_BOT = DIRECTORY + '1' + CAM1 + EXTENSION
+
+    NEXT_RAW_PATH_TOP = DIRECTORY + '2' + CAM3 + EXTENSION
+    NEXT_RAW_PATH_MID = DIRECTORY + '2' + CAM2 + EXTENSION
+    NEXT_RAW_PATH_BOT = DIRECTORY + '2' + CAM1 + EXTENSION
 
     # Initialization for rotary encoder
     # clkLastState = GPIO.input(clk)
-    
-    _ROTARY_COUNT = 1       # Used exclusively for testing
+    ROTARY_COUNT = 1       # Used exclusively for testing
 
 
     def __init__(self, win):
@@ -63,18 +74,37 @@ class Slideshow:
 
         # Initialization for images and associated properties
         self.alpha = 0
-        self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
-        self.current_raw = self.current_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-        # self.current_raw = self.current_raw.rotate(300).resize((900, 720), Image.ANTIALIAS)
 
-        self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-        self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-        # self.next_raw = self.next_raw.rotate(60).resize((900, 720), Image.ANTIALIAS)
-        
-        # Display the first image to the screen
-        self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
-        self.image_label = Label(master=root, image=self.display_photo_image)   # height=720, width=427
-        self.image_label.pack(side='right', fill='both', expand='no') # anchor
+        # Initialize current and next Top images
+        current_raw_top = Image.open(self.CURRENT_RAW_PATH_TOP, 'r')
+        self.current_raw_top = current_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
+        self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+
+        # Initialize current and next Middle images
+        current_raw_mid = Image.open(self.CURRENT_RAW_PATH_MID, 'r')
+        self.current_raw_mid = current_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
+        self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+
+        # Initialize current and next Bottom images
+        current_raw_bot = Image.open(self.CURRENT_RAW_PATH_BOT, 'r')
+        self.current_raw_bot = current_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
+        self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+
+        # Display the first 3 images to the screen
+        self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
+        self.image_label_top = Label(master=root, image=self.display_photo_image_top)
+        self.image_label_top.pack(side='right', fill='both', expand='no')
+
+        self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
+        self.image_label_mid = Label(master=root, image=self.display_photo_image_mid)
+        self.image_label_mid.pack(side='right', fill='both', expand='no')
+
+        self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
+        self.image_label_bot = Label(master=root, image=self.display_photo_image_bot)
+        self.image_label_bot.pack(side='right', fill='both', expand='no')
 
         # Start continual fading function, will loop for life of the class
         root.after(100, func=self.fade_image)
@@ -84,28 +114,36 @@ class Slideshow:
     # command could be a '+' or '-' move in the database
     def update_raw_images(self, command):
         if command == '+':
-            if self._PICTURE + 1 > self._LIMIT:
-                self._PICTURE = 1
+            if self.PICTURE + 1 > self.LIMIT:
+                self.PICTURE = 1
 
-            self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE + 1) + self._EXTENSION
-            self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-            self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-            # self.next_raw = self.next_raw.rotate(300).resize((900, 720), Image.ANTIALIAS)
-            
-            self._PICTURE += 1
+            self._help_build_next_raw_images(self.PICTURE)
+            self.PICTURE += 1
 
         elif command == '-':
-            if self._PICTURE < 2:
-                self._PICTURE = self._LIMIT
+            if self.PICTURE < 2:
+                self.PICTURE = self.LIMIT
 
-            self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE - 1) + self._EXTENSION
-            self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
-            self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-            
-            self._PICTURE -= 1
+            self._help_build_next_raw_images(self.PICTURE)
+            self.PICTURE -= 1
         
         else:
             raise Exception('command should be either '+' or '-'')
+
+
+    # Takes the current picture count and updates the next raw images
+    def _help_build_next_raw_images(self, current_count):
+        # self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count + 1) + self.CAM3 + self.EXTENSION
+        # next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
+        # self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+
+        self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count + 1) + self.CAM2 + self.EXTENSION
+        next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
+        self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+
+        # self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count + 1) + self.CAM1 + self.EXTENSION
+        # next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
+        # self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
 
     # Loops for the life of the program, fading between the current image
@@ -113,9 +151,11 @@ class Slideshow:
     def fade_image(self):
         print('Fading the image at alpha of: ', self.alpha)
         if self.alpha < 1.0:
-            self.current_raw = Image.blend(self.current_raw, self.next_raw, self.alpha)
-            self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
-            self.image_label.configure(image=self.display_photo_image)
+
+            # Middle image
+            self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
+            self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
+            self.image_label_mid.configure(image=self.display_photo_image_mid)
 
             self.alpha = self.alpha + 0.01
         root.after(20, self.fade_image)
@@ -143,21 +183,21 @@ class Slideshow:
 
     def z_key(self, event):
         print('Z key pressed')
-        self._DIRECTORY = 'hike1/'
+        self.DIRECTORY = 'hike1/'
 
     def x_key(self, event):
         print('X key pressed')
-        self._DIRECTORY = 'hike2/'
+        self.DIRECTORY = 'hike2/'
 
     
     def c_key(self, event):
         print('C key pressed')
-        self._DIRECTORY = 'hike3/'
+        self.DIRECTORY = 'hike3/'
 
 
     def v_key(self, event):
         print('V key pressed')
-        self._DIRECTORY = 'hike4/'
+        self.DIRECTORY = 'hike4/'
 
 
     # Detects rotary encoder change
@@ -167,15 +207,15 @@ class Slideshow:
         if clkState != self.clkLastState:
             # Increment
             if cntState != clkState:
-                self._ROTARY_COUNT += 1
-                print("Rotary +: ", self._ROTARY_COUNT)
+                self.ROTARY_COUNT += 1
+                print("Rotary +: ", self.ROTARY_COUNT)
                 self.update_raw_images('+')
                 # Sets amount of fade between pictures
                 self.alpha = .2
             # Decrement
             else:
-                self._ROTARY_COUNT -= 1
-                print("Rotary -: ", self._ROTARY_COUNT)
+                self.ROTARY_COUNT -= 1
+                print("Rotary -: ", self.ROTARY_COUNT)
                 self.update_raw_images('-')
                 # Sets amount of fade between pictures
                 self.alpha = .2
@@ -186,17 +226,17 @@ class Slideshow:
     # Detect button presses
     def button1_pressed(self, event):
         print('Button 1 pressed')
-        #_DIRECTORY = 'hike4/'
+        self.DIRECTORY = 'hike1/'
 
 
     def button2_pressed(self, event):
         print('Button 2 pressed')
-        #_DIRECTORY = 'hike1/'
+        self.DIRECTORY = 'hike2/'
 
 
     def button3_pressed(self, event):
         print('Button 3 pressed')
-        #_DIRECTORY = 'hike2/'
+        self.DIRECTORY = 'hike4/'
 
 
 # Create the root window
