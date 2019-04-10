@@ -3,7 +3,7 @@
 # Imports
 #import queue                       # Queue functions for threading
 import sys                          # System functions
-from gpiozero import Button       # Rotary encoder, detected as button
+from gpiozero import Button         # Rotary encoder, detected as button
 from PIL import ImageTk, Image      # Pillow image functions
 # from RPi import GPIO                # GPIO pin detection for Raspberry Pi
 from time import sleep              # sleeping functions
@@ -29,7 +29,7 @@ class Slideshow:
     # TODO - this will be changed when connected with database
     _EXTENSION = '.jpg'
     _DIRECTORY = 'hike4/'
-    _PICTURE = 1
+    _PICTURE = 2
     _LIMIT = 240
     _CURRENT_RAW_PATH = 'hike4/1.jpg'
     _NEXT_RAW_PATH = 'hike4/2.jpg'
@@ -45,7 +45,7 @@ class Slideshow:
         self.window = win
         self.window.title("Capra")
         self.window.geometry("1280x720")
-        self.window.configure(background='red')
+        self.window.configure(background='white')
 
         # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
@@ -64,12 +64,17 @@ class Slideshow:
         # Initialization for images and associated properties
         self.alpha = 0
         self.current_raw = Image.open(self._CURRENT_RAW_PATH, 'r')
+        self.current_raw = self.current_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        # self.current_raw = self.current_raw.rotate(300).resize((900, 720), Image.ANTIALIAS)
+
         self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+        self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        # self.next_raw = self.next_raw.rotate(60).resize((900, 720), Image.ANTIALIAS)
         
         # Display the first image to the screen
         self.display_photo_image = ImageTk.PhotoImage(self.current_raw)
-        self.image_label = Label(master=root, image=self.display_photo_image)
-        self.image_label.pack(side='bottom', fil='both', expand='yes')
+        self.image_label = Label(master=root, image=self.display_photo_image)   # height=720, width=427
+        self.image_label.pack(side='right', fill='both', expand='no') # anchor
 
         # Start continual fading function, will loop for life of the class
         root.after(100, func=self.fade_image)
@@ -84,6 +89,9 @@ class Slideshow:
 
             self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE + 1) + self._EXTENSION
             self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+            self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+            # self.next_raw = self.next_raw.rotate(300).resize((900, 720), Image.ANTIALIAS)
+            
             self._PICTURE += 1
 
         elif command == '-':
@@ -92,6 +100,8 @@ class Slideshow:
 
             self._NEXT_RAW_PATH = self._DIRECTORY + str(self._PICTURE - 1) + self._EXTENSION
             self.next_raw = Image.open(self._NEXT_RAW_PATH, 'r')
+            self.next_raw = self.next_raw.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+            
             self._PICTURE -= 1
         
         else:
@@ -108,7 +118,7 @@ class Slideshow:
             self.image_label.configure(image=self.display_photo_image)
 
             self.alpha = self.alpha + 0.01
-        root.after(15, self.fade_image)
+        root.after(20, self.fade_image)
 
 
     # Detects right key press
