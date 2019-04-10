@@ -28,7 +28,8 @@ class Slideshow:
     # Setup for the batch of images
     # TODO - these will be changed when connected with database
     EXTENSION = '.jpg'
-    DIRECTORY = 'hike10/'
+    # DIRECTORY = 'hike10/'
+    DIRECTORY = 'hike10-edited/'
     CAM1 = '_cam1'
     CAM2 = '_cam2'
     CAM3 = '_cam3'
@@ -56,7 +57,7 @@ class Slideshow:
         self.window = win
         self.window.title("Capra")
         self.window.geometry("1280x720")
-        self.window.configure(background='white')
+        self.window.configure(background='red')
 
         # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
@@ -75,36 +76,28 @@ class Slideshow:
         # Initialization for images and associated properties
         self.alpha = 0
 
-        # Initialize current and next Top images
-        current_raw_top = Image.open(self.CURRENT_RAW_PATH_TOP, 'r')
-        self.current_raw_top = current_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-        next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
-        self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        # Initialize current and next images
+        self.current_raw_top = Image.open(self.CURRENT_RAW_PATH_TOP, 'r')
+        self.next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
 
-        # Initialize current and next Middle images
-        current_raw_mid = Image.open(self.CURRENT_RAW_PATH_MID, 'r')
-        self.current_raw_mid = current_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-        next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
-        self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.current_raw_mid = Image.open(self.CURRENT_RAW_PATH_MID, 'r')
+        self.next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
 
-        # Initialize current and next Bottom images
-        current_raw_bot = Image.open(self.CURRENT_RAW_PATH_BOT, 'r')
-        self.current_raw_bot = current_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
-        next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
-        self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.current_raw_bot = Image.open(self.CURRENT_RAW_PATH_BOT, 'r')
+        self.next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
 
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
         self.image_label_top = Label(master=root, image=self.display_photo_image_top)
-        self.image_label_top.pack(side='right', fill='both', expand='no')
+        self.image_label_top.pack(side='right', fill='both', expand='yes')
 
         self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
         self.image_label_mid = Label(master=root, image=self.display_photo_image_mid)
-        self.image_label_mid.pack(side='right', fill='both', expand='no')
+        self.image_label_mid.pack(side='right', fill='both', expand='yes')
 
         self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
         self.image_label_bot = Label(master=root, image=self.display_photo_image_bot)
-        self.image_label_bot.pack(side='right', fill='both', expand='no')
+        self.image_label_bot.pack(side='right', fill='both', expand='yes')
 
         # Start continual fading function, will loop for life of the class
         root.after(100, func=self.fade_image)
@@ -134,23 +127,22 @@ class Slideshow:
     # Takes the current picture count and updates the next raw images
     def _help_build_next_raw_images(self, current_count):
         self.NEXT_RAW_PATH_TOP = self.DIRECTORY + str(current_count) + self.CAM3 + self.EXTENSION
-        next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
-        self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.next_raw_top = Image.open(self.NEXT_RAW_PATH_TOP, 'r')
+        # self.next_raw_top = next_raw_top.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
         self.NEXT_RAW_PATH_MID = self.DIRECTORY + str(current_count) + self.CAM2 + self.EXTENSION
-        next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
-        self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.next_raw_mid = Image.open(self.NEXT_RAW_PATH_MID, 'r')
+        # self.next_raw_mid = next_raw_mid.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
         self.NEXT_RAW_PATH_BOT = self.DIRECTORY + str(current_count) + self.CAM1 + self.EXTENSION
-        next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
-        self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
+        self.next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
+        # self.next_raw_bot = next_raw_bot.transpose(Image.ROTATE_270).resize((427, 720), Image.ANTIALIAS)
 
 
     # Loops for the life of the program, fading between the current image and the NEXT image
     def fade_image(self):
         print('Fading the image at alpha of: ', self.alpha)
         if self.alpha < 1.0:
-
             # Top image
             self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
             self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
