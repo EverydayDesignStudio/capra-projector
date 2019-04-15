@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
 
+is_RPi = False
+
 # Imports
-#import queue                       # Queue functions for threading
 import sys                          # System functions
-from gpiozero import Button         # Rotary encoder, detected as button
 from PIL import ImageTk, Image      # Pillow image functions
-from RPi import GPIO                # GPIO pin detection for Raspberry Pi
 from time import sleep              # sleeping functions
 from tkinter import Tk, Label       # Tkinter, GUI framework in use
+if is_RPi:
+    from gpiozero import Button         # Rotary encoder, detected as button
+    from RPi import GPIO                # GPIO pin detection for Raspberry Pi
+
 
 # Setup GPIO
-clk = 17
-cnt = 18
-button1 = 26
-button2 = 19
-button3 = 13
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+if is_RPi:
+    clk = 17
+    cnt = 18
+    button1 = 26
+    button2 = 19
+    button3 = 13
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
@@ -51,7 +55,8 @@ class Slideshow:
     NEXT_RAW_PATH_BOT = DIRECTORY + '2' + CAM_BOT + EXTENSION
 
     # Initialization for rotary encoder
-    clkLastState = GPIO.input(clk)
+    if is_RPi:
+        clkLastState = GPIO.input(clk)
     ROTARY_COUNT = 1       # Used exclusively for testing
 
 
@@ -71,10 +76,11 @@ class Slideshow:
         self.window.bind('<c>', self.c_key)
         self.window.bind('<v>', self.v_key)
 
-        self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-        self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
-        self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
-        self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
+        if is_RPi:
+            self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
+            self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
+            self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
+            self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
 
         # Initialization for images and associated properties
         self.alpha = 0
