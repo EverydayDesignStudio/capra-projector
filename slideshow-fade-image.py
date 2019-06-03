@@ -95,6 +95,9 @@ class Slideshow:
         self.current_raw_bot = Image.open(self.CURRENT_RAW_PATH_BOT, 'r')
         self.next_raw_bot = Image.open(self.NEXT_RAW_PATH_BOT, 'r')
 
+        self.current_raw_land = Image.new(mode='RGB', size=(1280, 720), color='blue')
+        self.next_raw_land = Image.new(mode='RGB', size=(1280, 720), color='pink')
+
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
         self.image_label_top = Label(master=root, image=self.display_photo_image_top)
@@ -107,6 +110,9 @@ class Slideshow:
         self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
         self.image_label_bot = Label(master=root, image=self.display_photo_image_bot)
         self.image_label_bot.pack(side='right', fill='both', expand='yes')
+
+        self.image_label_landscape = Label(master=root, image=self.display_photo_image_mid)
+        self.image_label_landscape.pack(fill='both', expand='yes')
 
         # Start continual fading function, will loop for life of the class
         root.after(0, func=self.fade_image)
@@ -165,6 +171,9 @@ class Slideshow:
             self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
+            # Landscape image
+            self.image_label_landscape.configure(image=self.display_photo_image_mid)
+
             self.alpha = self.alpha + 0.01
         root.after(20, self.fade_image)
 
@@ -202,21 +211,27 @@ class Slideshow:
 
     def z_key(self, event):
         print('Z key pressed')
-        self.DIRECTORY = 'hike1/'
+        self.image_label_top.pack_forget()
+        self.image_label_mid.pack_forget()
+        self.image_label_bot.pack_forget()
+        self.DIRECTORY = 'hike10/'
+
 
     def x_key(self, event):
         print('X key pressed')
-        self.DIRECTORY = 'hike2/'
+        # self.DIRECTORY = 'hike2/'
+        self.image_label_bot.pack()
 
     
     def c_key(self, event):
         print('C key pressed')
-        self.DIRECTORY = 'hike3/'
+        # self.DIRECTORY = 'hike3/'
+        self.image_label_top.pack_forget()
 
 
     def v_key(self, event):
         print('V key pressed')
-        self.DIRECTORY = 'hike4/'
+        # self.DIRECTORY = 'hike4/'
 
 
     # HARDWARE CONTROLS
