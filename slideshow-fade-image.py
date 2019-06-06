@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 is_RPi = True
-DB = '~/Pictures/capra-projector.db'
-PATH = '~/Pictures'
-blank_path = '{p}/blank.png'.format(p = PATH)
+DB = '/home/pi/Pictures/capra-projector.db'
+PATH = '/home/pi/Pictures'
 # DB = '/Volumes/Capra/capra-projector.db'
 # PATH = '/Volumes/Capra'
+blank_path = '{p}/blank.png'.format(p=PATH)
 
 # Imports
 from capra_data_types import Picture, Hike
