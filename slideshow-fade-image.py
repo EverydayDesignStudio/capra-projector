@@ -1,6 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
-is_RPi = False
+is_RPi = True
+DB = '~/Pictures/capra-projector.db'
+PATH = '~/Pictures'
+blank_path = '{p}/blank.png'.format(p = PATH)
+# DB = '/Volumes/Capra/capra-projector.db'
+# PATH = '/Volumes/Capra'
 
 # Imports
 from capra_data_types import Picture, Hike
@@ -46,8 +51,8 @@ class Slideshow:
         # Setup the window
         self.window = win
         self.window.title("Capra")
-        # self.window.geometry("1280x720")
-        self.window.geometry("2160x1280")
+        self.window.geometry("1280x720")
+        # self.window.geometry("2160x1280")
         self.window.configure(background='red')
 
         # Bind to events in which to listen
@@ -57,12 +62,10 @@ class Slideshow:
 
         if is_RPi:
             self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-            self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
-            self.window.bind(GPIO.add_event_detect(button2, GPIO.RISING, callback=self.button2_pressed))
-            self.window.bind(GPIO.add_event_detect(button3, GPIO.RISING, callback=self.button3_pressed))
+            # self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
 
         # Initialization for database implementation
-        self.sql_controller = SQLController()
+        self.sql_controller = SQLController(database=DB)
         self.picture_starter = self.sql_controller.get_first_time_picture_in_hike(14)
         self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture_starter)
         self.picture_starter.print_obj()
@@ -76,8 +79,8 @@ class Slideshow:
         self.next_raw_top = Image.open(self._build_filename(self.picture.camera1), 'r')
         self.current_raw_mid = Image.open(self._build_filename(self.picture_starter.camera2), 'r')
         self.next_raw_mid = Image.open(self._build_filename(self.picture.camera2), 'r')
-        self.current_raw_bot = Image.open('/Volumes/Capra/blank.png', 'r')
-        self.next_raw_bot = Image.open('/Volumes/Capra/blank.png', 'r')
+        self.current_raw_bot = Image.open(blank_path, 'r')
+        self.next_raw_bot = Image.open(blank_path, 'r')
 
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
@@ -99,10 +102,10 @@ class Slideshow:
     def _build_next_raw_images(self, next_picture: Picture):
         self.next_raw_top = Image.open(self._build_filename(next_picture.camera1), 'r')
         self.next_raw_mid = Image.open(self._build_filename(next_picture.camera2), 'r')
-        self.next_raw_bot = Image.open('/Volumes/Capra/blank.png', 'r')
+        self.next_raw_bot = Image.open(blank_path, 'r')
 
-    def _build_filename(self, path: str) -> str:
-        return f'/Volumes/Capra{path}'
+    def _build_filename(self, end_of_path: str) -> str:
+        return '{p}{e}'.format(p=PATH, e=end_of_path)
 
     # Loops for the life of the program, fading between the current image and the NEXT image
     def fade_image(self):

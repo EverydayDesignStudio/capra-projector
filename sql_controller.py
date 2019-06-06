@@ -4,12 +4,10 @@ import sqlite3
 from capra_data_types import Picture, Hike
 from sql_statements import SQLStatements
 
-SQLITE_DB = '/Volumes/Capra/capra-projector.db'
-
 
 class SQLController:
-    def __init__(self):
-        self.connection = sqlite3.connect(SQLITE_DB)
+    def __init__(self, database: str):
+        self.connection = sqlite3.connect(database)
         self.statements = SQLStatements()
 
     # Helper methods
