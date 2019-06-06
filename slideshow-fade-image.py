@@ -11,35 +11,43 @@ blank_path = '{p}/blank.png'.format(p=PATH)
 from capra_data_types import Picture, Hike
 from sql_controller import SQLController
 from sql_statements import SQLStatements
-import sys                          # System functions
 from PIL import ImageTk, Image      # Pillow image functions
-from time import sleep              # sleeping functions
 from tkinter import Tk, Label       # Tkinter, GUI framework in use
 if is_RPi:
     from gpiozero import Button         # Rotary encoder, detected as button
     from RPi import GPIO                # GPIO pin detection for Raspberry Pi
+    from time import sleep
 
 
 # Setup GPIO
 if is_RPi:
-    clk = 17
-    cnt = 18
-    button1 = 26
-    button2 = 19
-    button3 = 13
     GPIO.setmode(GPIO.BCM)
+
+    # Rotary encoder
+    clk = 21
+    cnt = 20
+    rotary_button = 16
     GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(rotary_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    # Rotary switch
+    mode1 = 13
+    mode2 = 19
+    mode3 = 26
+    GPIO.setup(mode1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(mode2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(mode3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    # Play / Pause button
+    play_pause_button = 5
+    GPIO.setup(play_pause_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
     # Setup for the batch of images
-    TRANSITION_DELAY = 3000     # time between pictures in miliseconds
+    TRANSITION_DELAY = 2000     # time between pictures in milliseconds
     IS_TRANSITION_FORWARD = True
 
     # Initialization for rotary encoder
@@ -52,8 +60,7 @@ class Slideshow:
         self.window = win
         self.window.title("Capra")
         self.window.geometry("1280x720")
-        # self.window.geometry("2160x1280")
-        self.window.configure(background='red')
+        self.window.configure(background='purple')
 
         # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
@@ -62,17 +69,19 @@ class Slideshow:
 
         if is_RPi:
             self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
-            # self.window.bind(GPIO.add_event_detect(button1, GPIO.RISING, callback=self.button1_pressed))
+            self.window.bind(GPIO.add_event_detect(rotary_button, GPIO.RISING, callback=self.rotary_button_pressed))
+            # self.rotary_button_pressed = GPIO.input(rotary_button)        # not sure if this is correct
 
         # Initialization for database implementation
         self.sql_controller = SQLController(database=DB)
-        self.picture_starter = self.sql_controller.get_first_time_picture_in_hike(14)
+        self.picture_starter = self.sql_controller.get_first_time_picture_in_hike(13)
         self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture_starter)
         self.picture_starter.print_obj()
         self.picture.print_obj()
 
         # Initialization for images and associated properties
         self.alpha = 0
+        self.is_across_hikes = False
 
         # Initialize current and next images
         self.current_raw_top = Image.open(self._build_filename(self.picture_starter.camera1), 'r')
@@ -97,7 +106,7 @@ class Slideshow:
 
         # Start continual fading function, will loop for life of the class
         root.after(0, func=self.fade_image)
-        root.after(self.TRANSITION_DELAY, func=self.auto_increment_slideshow)
+        # root.after(self.TRANSITION_DELAY, func=self.auto_increment_slideshow)
 
     def _build_next_raw_images(self, next_picture: Picture):
         self.next_raw_top = Image.open(self._build_filename(next_picture.camera1), 'r')
@@ -126,8 +135,8 @@ class Slideshow:
             self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
-            self.alpha = self.alpha + 0.01
-        root.after(100, self.fade_image)
+            self.alpha = self.alpha + 0.02
+        root.after(10, self.fade_image)
 
     def auto_increment_slideshow(self):
         # print('Auto incremented slideshow')
@@ -175,7 +184,7 @@ class Slideshow:
                 print("Rotary +: ", self.ROTARY_COUNT)
 
                 self.IS_TRANSITION_FORWARD = True   # For auto slideshow
-                self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture)
+                self.picture = self.sql_controller.next_time_picture_in_hike(self.picture)
                 self.picture.print_obj()
                 self._build_next_raw_images(self.picture)
                 self.alpha = .2     # Resets amount of fade between pictures
@@ -185,12 +194,16 @@ class Slideshow:
                 print("Rotary -: ", self.ROTARY_COUNT)
 
                 self.IS_TRANSITION_FORWARD = False  # For auto slideshow
-                self.picture = self.sql_controller.previous_altitude_picture_across_hikes(self.picture)
+                self.picture = self.sql_controller.previous_time_picture_in_hike(self.picture)
                 self.picture.print_obj()
                 self._build_next_raw_images(self.picture)
                 self.alpha = .2     # Resets amount of fade between pictures
         self.clkLastState = clkState
-        # sleep(0.1)
+        sleep(0.1)
+
+    def rotary_button_pressed(self, event):
+        print('rotary pressed')
+        # self.is_across_hikes = True
 
 # Create the root window
 root = Tk()

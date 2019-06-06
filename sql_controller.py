@@ -7,7 +7,8 @@ from sql_statements import SQLStatements
 
 class SQLController:
     def __init__(self, database: str):
-        self.connection = sqlite3.connect(database)
+        # TODO - be aware that this could potentially be dangerous for thread safety
+        self.connection = sqlite3.connect(database, check_same_thread=False)
         self.statements = SQLStatements()
 
     # Helper methods
