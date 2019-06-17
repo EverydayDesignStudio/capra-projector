@@ -53,7 +53,7 @@ class Slideshow:
     # Initialization for rotary encoder
     if is_RPi:
         clkLastState = GPIO.input(clk)
-        ROTARY_COUNT = 1                # Used exclusively for testing
+        ROTARY_COUNT = 0                # Used exclusively for testing
 
     def __init__(self, win):
         # Setup the window
@@ -68,7 +68,7 @@ class Slideshow:
         self.window.bind('<space>', self.space_key)
 
         if is_RPi:
-            self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detectedRotaryChange))
+            self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detected_rotary_change))
             self.window.bind(GPIO.add_event_detect(rotary_button, GPIO.RISING, callback=self.rotary_button_pressed))
             # self.rotary_button_pressed = GPIO.input(rotary_button)        # not sure if this is correct
 
@@ -109,9 +109,10 @@ class Slideshow:
         # root.after(self.TRANSITION_DELAY, func=self.auto_increment_slideshow)
 
     def _build_next_raw_images(self, next_picture: Picture):
+        print('build images')
         self.next_raw_top = Image.open(self._build_filename(next_picture.camera1), 'r')
         self.next_raw_mid = Image.open(self._build_filename(next_picture.camera2), 'r')
-        self.next_raw_bot = Image.open(blank_path, 'r')
+        # self.next_raw_bot = Image.open(blank_path, 'r')
 
     def _build_filename(self, end_of_path: str) -> str:
         return '{p}{e}'.format(p=PATH, e=end_of_path)
@@ -122,16 +123,19 @@ class Slideshow:
         if self.alpha < 1.0:
             # Top image
             self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
+            # self.current_raw_top = self.next_raw_top
             self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
             self.image_label_top.configure(image=self.display_photo_image_top)
 
             # Middle image
             self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
+            # self.current_raw_mid = self.next_raw_mid
             self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
             self.image_label_mid.configure(image=self.display_photo_image_mid)
 
             # Bottom image
             self.current_raw_bot = Image.blend(self.current_raw_bot, self.next_raw_bot, self.alpha)
+            # self.current_raw_bot = self.next_raw_bot
             self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
@@ -174,7 +178,7 @@ class Slideshow:
         print('space key pressed')
 
     # HARDWARE CONTROLS
-    def detectedRotaryChange(self, event):
+    def detected_rotary_change(self, event):
         clkState = GPIO.input(clk)
         cntState = GPIO.input(cnt)
         if clkState != self.clkLastState:
