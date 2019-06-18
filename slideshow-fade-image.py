@@ -13,6 +13,7 @@ from sql_controller import SQLController
 from sql_statements import SQLStatements
 from PIL import ImageTk, Image      # Pillow image functions
 from tkinter import Tk, Label       # Tkinter, GUI framework in use
+import time
 if is_RPi:
     from gpiozero import Button         # Rotary encoder, detected as button
     from RPi import GPIO                # GPIO pin detection for Raspberry Pi
@@ -58,7 +59,7 @@ class Slideshow:
     def __init__(self, win):
         # Setup the window
         self.window = win
-        self.window.title("Capra")
+        self.window.title("Capra Slideshow")
         self.window.geometry("1280x720")
         self.window.configure(background='purple')
 
@@ -119,7 +120,8 @@ class Slideshow:
 
     # Loops for the life of the program, fading between the current image and the NEXT image
     def fade_image(self):
-        # print('Fading the image at alpha of: ', self.alpha)
+        print('Fading the image at alpha of: ', self.alpha)
+        print(time.time())
         if self.alpha < 1.0:
             # Top image
             self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
@@ -128,8 +130,8 @@ class Slideshow:
             self.image_label_top.configure(image=self.display_photo_image_top)
 
             # Middle image
-            self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
-            # self.current_raw_mid = self.next_raw_mid
+            # self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
+            self.current_raw_mid = self.next_raw_mid
             self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
             self.image_label_mid.configure(image=self.display_photo_image_mid)
 
@@ -139,8 +141,8 @@ class Slideshow:
             self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
-            self.alpha = self.alpha + 0.02
-        root.after(10, self.fade_image)
+            self.alpha = self.alpha + 0.0417
+        root.after(83, self.fade_image)
 
     def auto_increment_slideshow(self):
         # print('Auto incremented slideshow')
@@ -203,7 +205,7 @@ class Slideshow:
                 self._build_next_raw_images(self.picture)
                 self.alpha = .2     # Resets amount of fade between pictures
         self.clkLastState = clkState
-        sleep(0.1)
+        # sleep(0.1)
 
     def rotary_button_pressed(self, event):
         print('rotary pressed')
