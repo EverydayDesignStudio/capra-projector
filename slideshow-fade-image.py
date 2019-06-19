@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-is_RPi = True
-DB = '/home/pi/Pictures/capra-projector.db'
-PATH = '/home/pi/Pictures'
-# DB = '/Volumes/Capra/capra-projector.db'
-# PATH = '/Volumes/Capra'
+is_RPi = False
+
+if is_RPi:
+    DB = '/home/pi/Pictures/capra-projector.db'
+    PATH = '/home/pi/Pictures'
+else:
+    DB = '/Volumes/Capra/capra-projector.db'
+    PATH = '/Volumes/Capra'
 blank_path = '{p}/blank.png'.format(p=PATH)
 
 # Imports
@@ -70,7 +73,7 @@ class Slideshow:
         if is_RPi:
             self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detected_rotary_change))
             self.window.bind(GPIO.add_event_detect(rotary_button, GPIO.RISING, callback=self.rotary_button_pressed))
-            # self.rotary_button_pressed = GPIO.input(rotary_button)        # not sure if this is correct
+            # self.rotary_button_pressed = GPIO.input(rotary_button)  # not sure if this is correct
 
         # Initialization for database implementation
         self.sql_controller = SQLController(database=DB)
@@ -161,7 +164,8 @@ class Slideshow:
     def rightKey(self, event):
         print('increment the count')
         self.IS_TRANSITION_FORWARD = True
-        self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture)
+        # self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture)
+        self.picture = self.sql_controller.next_time_picture_in_hike(self.picture)
         self.picture.print_obj()
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
@@ -169,7 +173,8 @@ class Slideshow:
     def leftKey(self, event):
         print("decrement the count")
         self.IS_TRANSITION_FORWARD = False
-        self.picture = self.sql_controller.previous_altitude_picture_across_hikes(self.picture)
+        # self.picture = self.sql_controller.previous_altitude_picture_across_hikes(self.picture)
+        self.picture = self.sql_controller.previous_time_picture_in_hike(self.picture)
         self.picture.print_obj()
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
