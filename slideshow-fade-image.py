@@ -14,9 +14,10 @@ blank_path = '{p}/blank.png'.format(p=PATH)
 from capra_data_types import Picture, Hike
 from sql_controller import SQLController
 from sql_statements import SQLStatements
-from PIL import ImageTk, Image      # Pillow image functions
-from tkinter import Tk, Label       # Tkinter, GUI framework in use
+from PIL import ImageTk, Image          # Pillow image functions
+from tkinter import Tk, Canvas, Label   # Tkinter, GUI framework in use
 import time
+import datetime
 if is_RPi:
     from gpiozero import Button         # Rotary encoder, detected as button
     from RPi import GPIO                # GPIO pin detection for Raspberry Pi
@@ -63,8 +64,12 @@ class Slideshow:
         # Setup the window
         self.window = win
         self.window.title("Capra Slideshow")
-        self.window.geometry("1280x720")
-        self.window.configure(background='purple')
+        # self.window.geometry("1280x720")
+        self.window.geometry("740x1280")
+        self.window.configure(background='black')
+        self.canvas = Canvas(root, width=720, height=1280, background="#000", highlightthickness=0)
+        # self.canvas.configure(bg='#444')
+        self.canvas.pack(expand='yes', fill='both')
 
         # Bind to events in which to listen
         self.window.bind('<Left>', self.leftKey)
@@ -78,10 +83,8 @@ class Slideshow:
 
         # Initialization for database implementation
         self.sql_controller = SQLController(database=DB)
-        self.picture_starter = self.sql_controller.get_first_time_picture_in_hike(13)
-        self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture_starter)
-        self.picture_starter.print_obj()
-        self.picture.print_obj()
+        self.picture_starter = self.sql_controller.get_first_time_picture_in_hike(14)
+        self.picture = self.sql_controller.next_time_picture_in_hike(self.picture_starter)
 
         # Initialization for images and associated properties
         self.alpha = 0
@@ -97,23 +100,44 @@ class Slideshow:
 
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
-        self.image_label_top = Label(master=root, image=self.display_photo_image_top)
-        self.image_label_top.pack(side='right', fill='both', expand='yes')
+        self.image_label_top = Label(master=root, image=self.display_photo_image_top, borderwidth=0)
+        # self.image_label_top.pack(side='top', fill='both', expand='yes')
+        self.image_label_top.place(relx=1.0, rely=0.0, anchor='ne')
 
         self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
-        self.image_label_mid = Label(master=root, image=self.display_photo_image_mid)
-        self.image_label_mid.pack(side='right', fill='both', expand='yes')
+        self.image_label_mid = Label(master=root, image=self.display_photo_image_mid, borderwidth=0)
+        # self.image_label_mid.pack(side='top', fill='both', expand='yes')
+        self.image_label_mid.place(relx=1.0, y=405, anchor='ne')
 
         self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
-        self.image_label_bot = Label(master=root, image=self.display_photo_image_bot)
-        self.image_label_bot.pack(side='right', fill='both', expand='yes')
+        self.image_label_bot = Label(master=root, image=self.display_photo_image_bot, borderwidth=0)
+        # self.image_label_bot.pack(side='top', fill='both', expand='yes')
+        self.image_label_bot.place(relx=1.0, y=810, anchor='ne')
+
+        # Hike labels
+        self.label_hike = Label(root, text='Hike: ')
+        self.label_index = Label(root, text='Index: ')
+        self.label_alt = Label(root, text='Altitude: ')
+        self.label_date = Label(root, text='Date: ')
+        self.label_hikesz = Label(root, text='1500')
+
+        self.label_hike.place(relx=1.0, y=0, anchor='ne')
+        self.label_index.place(relx=1.0, y=22, anchor='ne')
+        self.label_alt.place(relx=1.0, y=44, anchor='ne')
+        self.label_date.place(relx=1.0, y=66, anchor='ne')
+        self.label_hikesz.place(relx=0.0, rely=1.0, anchor='sw')
+
+        self.tick = self.canvas.create_rectangle(0, 0, 20, 5, outline="#fff", width=0, fill="#fff", tags=('tick'))
+
+        self.update_text()
+        self.update_tick()
 
         # Start continual fading function, will loop for life of the class
         root.after(0, func=self.fade_image)
         # root.after(self.TRANSITION_DELAY, func=self.auto_increment_slideshow)
 
     def _build_next_raw_images(self, next_picture: Picture):
-        print('build images')
+        # print('build images')
         self.next_raw_top = Image.open(self._build_filename(next_picture.camera1), 'r')
         self.next_raw_mid = Image.open(self._build_filename(next_picture.camera2), 'r')
         # self.next_raw_bot = Image.open(blank_path, 'r')
@@ -123,8 +147,8 @@ class Slideshow:
 
     # Loops for the life of the program, fading between the current image and the NEXT image
     def fade_image(self):
-        print('Fading the image at alpha of: ', self.alpha)
-        print(time.time())
+        # print('Fading the image at alpha of: ', self.alpha)
+        # print(time.time())
         if self.alpha < 1.0:
             # Top image
             self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
@@ -147,16 +171,46 @@ class Slideshow:
             self.alpha = self.alpha + 0.0417
         root.after(83, self.fade_image)
 
+    def update_text(self):
+        hike = 'Hike {n}'.format(n=self.picture.hike_id)
+
+        hike_sz = self.sql_controller.get_size_of_hike(self.picture)
+        index = '{x} / {n}'.format(x=self.picture.index_in_hike, n=hike_sz)
+
+        altitude = '{a}m'.format(a=self.picture.altitude)
+
+        value = datetime.datetime.fromtimestamp(self.picture.time)
+        date_time = value.strftime('%-I:%M:%S%p on %d %b, %Y')
+        date = '{d}'.format(d=date_time)
+
+        self.label_hike.configure(text=hike)
+        self.label_index.configure(text=index)
+        self.label_alt.configure(text=altitude)
+        self.label_date.configure(text=date)
+        self.label_hikesz.configure(text=hike_sz)
+
+    def update_tick(self):
+        hike_sz = self.sql_controller.get_size_of_hike(self.picture)
+        y = (self.picture.index_in_hike / hike_sz) * 1280
+        print(y)
+        
+                            # object, x1, y1, x2, y2
+        self.canvas.coords(self.tick, 0, y, 20, y+10)
+
+        # self.canvas.itemconfig(self.tick, fill='red')
+        # self.canvas.move('tick', 0, y)
+        # self.tick.coords(0, 0, 100, 100)
+
     def auto_increment_slideshow(self):
         # print('Auto incremented slideshow')
         if self.IS_TRANSITION_FORWARD:
             self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture)
-            self.picture.print_obj()
+            # self.picture.print_obj()
             self._build_next_raw_images(self.picture)
             self.alpha = .2
         else:
             self.picture = self.sql_controller.previous_altitude_picture_across_hikes(self.picture)
-            self.picture.print_obj()
+            # self.picture.print_obj()
             self._build_next_raw_images(self.picture)
             self.alpha = .2
 
@@ -164,22 +218,26 @@ class Slideshow:
 
     # KEYBOARD KEYS
     def rightKey(self, event):
-        print('increment the count')
+        # print('increment the count')
         self.IS_TRANSITION_FORWARD = True
         # self.picture = self.sql_controller.next_altitude_picture_across_hikes(self.picture)
         self.picture = self.sql_controller.next_time_picture_in_hike(self.picture)
-        self.picture.print_obj()
+        # self.picture.print_obj()
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
+        self.update_text()
+        self.update_tick()
 
     def leftKey(self, event):
-        print("decrement the count")
+        # print("decrement the count")
         self.IS_TRANSITION_FORWARD = False
         # self.picture = self.sql_controller.previous_altitude_picture_across_hikes(self.picture)
         self.picture = self.sql_controller.previous_time_picture_in_hike(self.picture)
-        self.picture.print_obj()
+        # self.picture.print_obj()
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
+        self.update_text()
+        self.update_tick()
 
     def space_key(self, event):
         print('space key pressed')
@@ -218,5 +276,7 @@ class Slideshow:
 
 # Create the root window
 root = Tk()
+# root.attributes("-fullscreen", True)
+root.bind('<Escape>', quit)
 slide_show = Slideshow(root)
 root.mainloop()
