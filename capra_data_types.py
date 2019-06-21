@@ -32,3 +32,8 @@ class Hike:
         self.start_time = start_time
         self.end_time = end_time
         self.pictures_num = pictures_num
+
+    def print_obj(self):
+        print('({id}, {alt}, {col}, {time_s}, {time_e}, {p})\
+            '.format(id=self.hike_id, alt=self.average_altitude, col=self.average_color,
+                     time_s=self.start_time, time_e=self.end_time, p=self.pictures_num))
