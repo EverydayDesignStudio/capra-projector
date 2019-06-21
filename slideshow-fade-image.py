@@ -65,7 +65,7 @@ class Slideshow:
         self.window = win
         self.window.title("Capra Slideshow")
         # self.window.geometry("1280x720")
-        self.window.geometry("740x1280")
+        self.window.geometry("720x1280")
         self.window.configure(background='black')
         self.canvas = Canvas(root, width=720, height=1280, background="#000", highlightthickness=0)
         # self.canvas.configure(bg='#444')
@@ -100,26 +100,38 @@ class Slideshow:
 
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
-        self.image_label_top = Label(master=root, image=self.display_photo_image_top, borderwidth=0)
+        self.image_label_top = Label(master=self.canvas, image=self.display_photo_image_top, borderwidth=0)
         # self.image_label_top.pack(side='top', fill='both', expand='yes')
-        self.image_label_top.place(relx=1.0, rely=0.0, anchor='ne')
+        self.image_label_top.place(x=20, rely=0.0, anchor='nw')
 
         self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
-        self.image_label_mid = Label(master=root, image=self.display_photo_image_mid, borderwidth=0)
+        self.image_label_mid = Label(master=self.canvas, image=self.display_photo_image_mid, borderwidth=0)
         # self.image_label_mid.pack(side='top', fill='both', expand='yes')
-        self.image_label_mid.place(relx=1.0, y=405, anchor='ne')
+        self.image_label_mid.place(x=20, y=405, anchor='nw')
 
         self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
-        self.image_label_bot = Label(master=root, image=self.display_photo_image_bot, borderwidth=0)
+        self.image_label_bot = Label(master=self.canvas, image=self.display_photo_image_bot, borderwidth=0)
         # self.image_label_bot.pack(side='top', fill='both', expand='yes')
-        self.image_label_bot.place(relx=1.0, y=810, anchor='ne')
+        self.image_label_bot.place(x=20, y=810, anchor='nw')
+
+        # Strip on the left
+        # left_strip_raw = Image.open('images/black-strip.png', 'r')
+        # self.left_strip_photo = ImageTk.PhotoImage(left_strip_raw)
+        # self.left_strip_label = Label(master=self.canvas, image=self.left_strip_photo, borderwidth=0)
+        # self.left_strip_label.place(relx=0.0, y=0, anchor='nw')
+
+        # Marker
+        # marker_raw = Image.open('images/marker2.png', 'r')
+        # self.marker_photo = ImageTk.PhotoImage(marker_raw)
+        # self.marker_label = Label(master=self.canvas, image=self.marker_photo, borderwidth=0)
+        # self.marker_label.place(x=0.0, y=0.0)
 
         # Hike labels
-        self.label_hike = Label(root, text='Hike: ')
-        self.label_index = Label(root, text='Index: ')
-        self.label_alt = Label(root, text='Altitude: ')
-        self.label_date = Label(root, text='Date: ')
-        self.label_hikesz = Label(root, text='1500')
+        self.label_hike = Label(self.canvas, text='Hike: ')
+        self.label_index = Label(self.canvas, text='Index: ')
+        self.label_alt = Label(self.canvas, text='Altitude: ')
+        self.label_date = Label(self.canvas, text='Date: ')
+        self.label_hikesz = Label(self.canvas, text='1500')
 
         self.label_hike.place(relx=1.0, y=0, anchor='ne')
         self.label_index.place(relx=1.0, y=22, anchor='ne')
@@ -128,6 +140,7 @@ class Slideshow:
         self.label_hikesz.place(relx=0.0, rely=1.0, anchor='sw')
 
         self.tick = self.canvas.create_rectangle(0, 0, 20, 5, outline="#fff", width=0, fill="#fff", tags=('tick'))
+        self.canvas.tag_raise(self.tick)
 
         self.update_text()
         self.update_tick()
@@ -169,6 +182,7 @@ class Slideshow:
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
             self.alpha = self.alpha + 0.0417
+            # self.alpha = self.alpha + 0.0209
         root.after(83, self.fade_image)
 
     def update_text(self):
@@ -193,9 +207,10 @@ class Slideshow:
         hike_sz = self.sql_controller.get_size_of_hike(self.picture)
         y = (self.picture.index_in_hike / hike_sz) * 1280
         print(y)
-        
+
                             # object, x1, y1, x2, y2
-        self.canvas.coords(self.tick, 0, y, 20, y+10)
+        self.canvas.coords(self.tick, 0, y, 30, y+8)
+        # self.marker_label.place_configure(x=0.0, y=y)
 
         # self.canvas.itemconfig(self.tick, fill='red')
         # self.canvas.move('tick', 0, y)
