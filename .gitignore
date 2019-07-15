@@ -8,6 +8,7 @@ __pycache__/
 /hike4/
 /hike10/
 /hike10-edited/
+*.sketch
 
 # File System
 .DS_Store

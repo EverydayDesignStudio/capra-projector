@@ -18,6 +18,11 @@ class SQLController:
                           camera1=row[6], camera2=row[7], camera3=row[8])
         return picture
 
+    def _build_hike_from_row(self, row: list) -> Hike:
+        hike = Hike(hike_id=row[0], average_altitude=row[1], average_color=row[2], start_time=row[3], 
+                    end_time=row[4], pictures_num=row[5])
+        return hike
+
     def _get_picture_from_sql_statement(self, statement: str) -> Picture:
         cursor = self.connection.cursor()
         cursor.execute(statement)
@@ -194,3 +199,19 @@ class SQLController:
             return self.get_greatest_altitude_picture_in_hike(hike_id=h)
         else:  # there is a previous picture in hike
             return self._build_picture_from_row(all_rows[0])
+
+    # Hikes
+    def get_size_of_hike(self, current_picture: Picture) -> int:
+        cursor = self.connection.cursor()
+        h = current_picture.hike_id
+        cursor.execute(self.statements.select_size_of_hike(hike_id=h))
+        row = cursor.fetchone()
+        size = int(row[0])
+        return size
+
+    def get_current_hike(self, current_picture: Picture) -> Hike:
+        cursor = self.connection.cursor()
+        h = current_picture.hike_id
+        cursor.execute(self.statements.select_hike_by_id(hike_id=h))
+        all_rows = cursor.fetchall()
+        return self._build_hike_from_row(all_rows[0])

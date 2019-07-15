@@ -151,3 +151,12 @@ class SQLStatements:
     # def select_by_color_next_picture() -> str:
 
     # def select_by_color_previous_picture() -> str:
+
+    # Hike
+    def select_size_of_hike(self, hike_id: float) -> str:
+        statement = 'SELECT pictures FROM hikes WHERE hike_id={id}'.format(id=hike_id)
+        return statement
+
+    def select_hike_by_id(self, hike_id: float) -> str:
+        statement = 'SELECT * FROM hikes WHERE hike_id={id}'.format(id=hike_id)
+        return statement
