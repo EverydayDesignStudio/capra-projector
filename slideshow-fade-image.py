@@ -213,5 +213,7 @@ class Slideshow:
 
 # Create the root window
 root = Tk()
+root.attributes("-fullscreen", True)
+root.bind("<Escape>", exit)
 slide_show = Slideshow(root)
 root.mainloop()
