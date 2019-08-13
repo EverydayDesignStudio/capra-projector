@@ -65,7 +65,7 @@ spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
 cs = digitalio.DigitalInOut(board.D8)
 mcp = MCP.MCP3008(spi, cs)
 ```
-*Note that `SCK, MISO, MOSI are all SPI (Serial Peripheral Interface) pins. <br>
+*Note that `SCK`, `MISO`, `MOSI` are all SPI (Serial Peripheral Interface) pins. <br>
 *Note that `board.D8` refers to RPi Pin 24 / BCM 8. Accordingly, BCM 25 = `board.D25` and BCM 5 = `board.D5`.
 
 
