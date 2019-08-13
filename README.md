@@ -43,6 +43,6 @@ _\***Component Numbers are:_
 | Sparkfun Accelerometer | [ADXL337 (breakout)](https://www.sparkfun.com/products/12786)
 
 > __DESIGN ERROR:__
-The PCB has a design error regarding the MODE-related channels on the ADC (ch 0, 1, 2). This design error has two consequences:
+The PCB has a design error regarding the MODE-related channels on the ADC (ch 0, 1, 2). They are routed as if they were connected to the RPi's GPIO and their functioning could rely on the RPi's internal pullup resistors. However, they are routed to the ADC; which does not have internal pullup resistors. This design error has two consequences:
 1. Channels 0, 1, 2 on the ADC are left floating when disconnected at the slider switch. These should be pulled low by separate 10kΩ resistors.
 2. The base of the switch is pulled low by a 10kΩ resistor (R1). Instead of pulling the base low, pull it high instead (i.e. connect R1 to the base of the switch and 3V3)
