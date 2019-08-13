@@ -25,7 +25,7 @@ from adafruit_mcp3xxx.analog_in import AnalogIn
 
 
 import time
-from oloFunctions import *
+#from oloFunctions import *
 
 import queue
 from statistics import mean
