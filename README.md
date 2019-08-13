@@ -49,10 +49,11 @@ The PCB has a design error regarding the MODE-related channels on the ADC (ch 0,
 
 
 ## Software
-###MCP3008
-[Needed library](https://pypi.org/project/adafruit-circuitpython-mcp3xxx/) is included in the Makefile.
+### MCP3008
+[Needed library](https://pypi.org/project/adafruit-circuitpython-mcp3xxx/) is included in the Makefile. <br>
+It may be useful to check out this [guide for wiring up an MCP3008](https://learn.adafruit.com/mcp3008-spi-adc/python-circuitpython) that also has sample code for reading the basic values.
 
-The code looks like the following: <br>
+The code for getting values looks like the following: <br>
 ```python
 import busio
 import digitalio
@@ -64,6 +65,7 @@ spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
 cs = digitalio.DigitalInOut(board.D8)
 mcp = MCP.MCP3008(spi, cs)
 ```
+*Note that `SCK, MISO, MOSI are all SPI (Serial Peripheral Interface) pins. <br>
 *Note that `board.D8` refers to RPi Pin 24 / BCM 8. Accordingly, BCM 25 = `board.D25` and BCM 5 = `board.D5`.
 
 
