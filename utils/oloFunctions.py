@@ -141,14 +141,14 @@ def readValues():
     sh.values = [0]*8
 
     # The read_adc function will get the value of the specified channel (0-7).
-    ch0 = AnalogIn(mcp, MCP.P0, MCP.P1)
-    ch1 = AnalogIn(mcp, MCP.P1, MCP.P0)
-    ch2 = AnalogIn(mcp, MCP.P2, MCP.P3)
-    ch3 = AnalogIn(mcp, MCP.P3, MCP.P2)
-    ch4 = AnalogIn(mcp, MCP.P4, MCP.P5)
-    ch5 = AnalogIn(mcp, MCP.P5, MCP.P4)
-    ch6 = AnalogIn(mcp, MCP.P6, MCP.P7)
-    ch7 = AnalogIn(mcp, MCP.P7, MCP.P6)
+    ch0 = AnalogIn(mcp, MCP.P0, MCP.P0)
+    ch1 = AnalogIn(mcp, MCP.P1, MCP.P1)
+    ch2 = AnalogIn(mcp, MCP.P2, MCP.P2)
+    ch3 = AnalogIn(mcp, MCP.P3, MCP.P3)
+    ch4 = AnalogIn(mcp, MCP.P4, MCP.P4)
+    ch5 = AnalogIn(mcp, MCP.P5, MCP.P5)
+    ch6 = AnalogIn(mcp, MCP.P6, MCP.P6)
+    ch7 = AnalogIn(mcp, MCP.P7, MCP.P7)
 
     # shift values down by 6 bits
     # https://github.com/adafruit/Adafruit_CircuitPython_MCP3xxx/issues/12
