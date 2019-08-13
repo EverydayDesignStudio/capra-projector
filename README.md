@@ -1,6 +1,8 @@
 # Capra Explorer
 _Artefact that stores -and lets one browse- the archive of photos and data collected with the Capra Collector._
 
+TODO: Add $ sudo pip3 install adafruit-circuitpython-mcp3xxx to Makefile
+
 
 ## Hardware
 The Explorer consists of:
