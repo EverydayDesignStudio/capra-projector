@@ -86,8 +86,8 @@ class Slideshow:
         self.window.title("Capra Slideshow")
         self.window.geometry("1280x720")
         # self.window.geometry("720x1280")
-        self.window.configure(background='black')
-        self.canvas = Canvas(root, width=720, height=1280, background="#888", highlightthickness=0)
+        self.window.configure(background='purple')
+        self.canvas = Canvas(root, width=1280, height=720, background="#888", highlightthickness=0)
         # self.canvas.configure(bg='#444')
         self.canvas.pack(expand='yes', fill='both')
 
@@ -122,18 +122,18 @@ class Slideshow:
         # Display the first 3 images to the screen
         self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
         self.image_label_top = Label(master=self.canvas, image=self.display_photo_image_top, borderwidth=0)
-        # self.image_label_top.pack(side='top', fill='both', expand='yes')
-        self.image_label_top.place(x=20, rely=0.0, anchor='nw')
+        self.image_label_top.pack(side='right', fill='both', expand='yes')
+        # self.image_label_top.place(x=20, rely=0.0, anchor='nw')
 
         self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
         self.image_label_mid = Label(master=self.canvas, image=self.display_photo_image_mid, borderwidth=0)
-        # self.image_label_mid.pack(side='top', fill='both', expand='yes')
-        self.image_label_mid.place(x=20, y=405, anchor='nw')
+        self.image_label_mid.pack(side='right', fill='both', expand='yes')
+        # self.image_label_mid.place(x=20, y=405, anchor='nw')
 
         self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
         self.image_label_bot = Label(master=self.canvas, image=self.display_photo_image_bot, borderwidth=0)
-        # self.image_label_bot.pack(side='top', fill='both', expand='yes')
-        self.image_label_bot.place(x=20, y=810, anchor='nw')
+        self.image_label_bot.pack(side='right', fill='both', expand='yes')
+        # self.image_label_bot.place(x=20, y=810, anchor='nw')
 
         # Strip on the left
         # left_strip_raw = Image.open('images/black-strip.png', 'r')
@@ -186,19 +186,19 @@ class Slideshow:
         if self.alpha < 1.0:
             # Top image
             self.current_raw_top = Image.blend(self.current_raw_top, self.next_raw_top, self.alpha)
-            self.current_raw_top = self.next_raw_top
+            # self.current_raw_top = self.next_raw_top
             self.display_photo_image_top = ImageTk.PhotoImage(self.current_raw_top)
             self.image_label_top.configure(image=self.display_photo_image_top)
 
             # Middle image
             self.current_raw_mid = Image.blend(self.current_raw_mid, self.next_raw_mid, self.alpha)
-            self.current_raw_mid = self.next_raw_mid
+            # self.current_raw_mid = self.next_raw_mid
             self.display_photo_image_mid = ImageTk.PhotoImage(self.current_raw_mid)
             self.image_label_mid.configure(image=self.display_photo_image_mid)
 
             # Bottom image
             self.current_raw_bot = Image.blend(self.current_raw_bot, self.next_raw_bot, self.alpha)
-            self.current_raw_bot = self.next_raw_bot
+            # self.current_raw_bot = self.next_raw_bot
             self.display_photo_image_bot = ImageTk.PhotoImage(self.current_raw_bot)
             self.image_label_bot.configure(image=self.display_photo_image_bot)
 
@@ -316,7 +316,7 @@ class Slideshow:
                     # self.update_text()
                     # self.update_tick()
         self.clkLastState = clkState
-        sleep(0.005)
+        # sleep(0.005)
 
     def rotary_button_pressed(self, event):
         print('rotary pressed')
