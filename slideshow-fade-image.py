@@ -135,36 +135,19 @@ class Slideshow:
         self.image_label_bot.pack(side='right', fill='both', expand='yes')
         # self.image_label_bot.place(x=20, y=810, anchor='nw')
 
-        # Strip on the left
-        # left_strip_raw = Image.open('images/black-strip.png', 'r')
-        # self.left_strip_photo = ImageTk.PhotoImage(left_strip_raw)
-        # self.left_strip_label = Label(master=self.canvas, image=self.left_strip_photo, borderwidth=0)
-        # self.left_strip_label.place(relx=0.0, y=0, anchor='nw')
-
-        # Marker
-        # marker_raw = Image.open('images/marker2.png', 'r')
-        # self.marker_photo = ImageTk.PhotoImage(marker_raw)
-        # self.marker_label = Label(master=self.canvas, image=self.marker_photo, borderwidth=0)
-        # self.marker_label.place(x=0.0, y=0.0)
-
         # Hike labels
         self.label_hike = Label(self.canvas, text='Hike: ')
         self.label_index = Label(self.canvas, text='Index: ')
         self.label_alt = Label(self.canvas, text='Altitude: ')
         self.label_date = Label(self.canvas, text='Date: ')
-        self.label_hikesz = Label(self.canvas, text='1500')
 
         self.label_hike.place(relx=1.0, y=0, anchor='ne')
         self.label_index.place(relx=1.0, y=22, anchor='ne')
         self.label_alt.place(relx=1.0, y=44, anchor='ne')
         self.label_date.place(relx=1.0, y=66, anchor='ne')
-        self.label_hikesz.place(relx=0.0, rely=1.0, anchor='sw')
 
-        self.tick = self.canvas.create_rectangle(0, 0, 20, 5, outline="#fff", width=0, fill="#fff", tags=('tick'))
-        self.canvas.tag_raise(self.tick)
-
-        self.update_text()
-        self.update_tick()
+        # Start continual update of text for life of class
+        root.after(0, func=self.update_text)
 
         # Start continual fading function, will loop for life of the class
         root.after(0, func=self.fade_image)
@@ -222,20 +205,8 @@ class Slideshow:
         self.label_index.configure(text=index)
         self.label_alt.configure(text=altitude)
         self.label_date.configure(text=date)
-        self.label_hikesz.configure(text=hike_sz)
 
-    def update_tick(self):
-        hike_sz = self.sql_controller.get_size_of_hike(self.picture)
-        y = (self.picture.index_in_hike / hike_sz) * 1280
-        print(y)
-
-                            # object, x1, y1, x2, y2
-        self.canvas.coords(self.tick, 0, y, 30, y+8)
-        # self.marker_label.place_configure(x=0.0, y=y)
-
-        # self.canvas.itemconfig(self.tick, fill='red')
-        # self.canvas.move('tick', 0, y)
-        # self.tick.coords(0, 0, 100, 100)
+        root.after(1000, self.update_text)
 
     def auto_increment_slideshow(self):
         # print('Auto incremented slideshow')
@@ -262,7 +233,6 @@ class Slideshow:
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
         self.update_text()
-        self.update_tick()
 
     def leftKey(self, event):
         # print("decrement the count")
@@ -273,7 +243,6 @@ class Slideshow:
         self._build_next_raw_images(self.picture)
         self.alpha = .2     # Resets amount of fade between pictures
         self.update_text()
-        self.update_tick()
 
     def space_key(self, event):
         print('space key pressed')
@@ -282,12 +251,14 @@ class Slideshow:
     def detected_rotary_change(self, event):
         clkState = GPIO.input(clk)
         cntState = GPIO.input(cnt)
+
+        # The encoder has moved
         if clkState != self.clkLastState:
             # Increment
             if cntState != clkState:
                 if (self.rotary_button_state):
                     print('INCREMENT ACROSS ALL HIKES')
-                    # self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
+                    self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
                 else:
                     self.ROTARY_COUNT += 1
                     print("Rotary +: ", self.ROTARY_COUNT)
@@ -303,7 +274,7 @@ class Slideshow:
             else:
                 if (self.rotary_button_state):
                     print('DECREMENT ACROSS ALL HIKES')
-                    # self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
+                    self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
                 else:
                     self.ROTARY_COUNT -= 1
                     print("Rotary -: ", self.ROTARY_COUNT)
@@ -317,7 +288,7 @@ class Slideshow:
                     # self.update_tick()
         self.clkLastState = clkState
         # TODO - try around with this in or out depending on the rotary encoder
-        sleep(0.01)
+        # sleep(0.1)
 
     def rotary_button_pressed(self, event):
         print('rotary pressed')
