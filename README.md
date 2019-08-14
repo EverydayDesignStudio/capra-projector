@@ -1,8 +1,6 @@
 # Capra Explorer
 _Artefact that stores -and lets one browse- the archive of photos and data collected with the Capra Collector._
 
-TODO: Add $ sudo pip3 install adafruit-circuitpython-mcp3xxx to Makefile
-
 
 ## Hardware
 The Explorer consists of:
@@ -13,7 +11,7 @@ The Explorer consists of:
 - Aaxa Pico Projector ([P2-B](http://aaxatech.com/products/P2B_pico_projector.html); previously [HD-Pico](http://aaxatech.com/products/hd_pico_projector.html))
 - Adafruit NeoPixel Strip
 
-The Explorer Control PCB connects all control components to the raspberry pi.  The control components on this PCB are:
+The Explorer Control PCB connects all control components to the Raspberry Pi. The control components on this PCB are:
 
 | Name | Function   | Pin             | Component*** |
 | ---- | ---------- | --------------- | ------------ |
@@ -46,5 +44,28 @@ _\***Component Numbers are:_
 
 > __DESIGN ERROR:__
 The PCB has a design error regarding the MODE-related channels on the ADC (ch 0, 1, 2). They are routed as if they were connected to the RPi's GPIO and their functioning could rely on the RPi's internal pullup resistors. However, they are routed to the ADC; which does not have internal pullup resistors. This design error has two consequences:
-1. Channels 0, 1, 2 on the ADC are left floating when disconnected at the slider switch. These should be pulled low by separate 10kΩ resistors.
-2. The base of the switch is pulled low by a 10kΩ resistor (R1). Instead of pulling the base low, pull it high instead (i.e. connect R1 to the base of the switch and 3V3)
+1) Channels 0, 1, 2 on the ADC are left floating when disconnected at the slider switch. These should be pulled low by separate 10kΩ resistors.
+2) The base of the switch is pulled low by a 10kΩ resistor (R1). Instead of pulling the base low, pull it high instead (i.e. connect R1 to the base of the switch and 3V3)
+
+
+## Software
+### MCP3008
+[Needed library](https://pypi.org/project/adafruit-circuitpython-mcp3xxx/) is included in the Makefile. <br>
+It may be useful to check out this [guide for wiring up an MCP3008](https://learn.adafruit.com/mcp3008-spi-adc/python-circuitpython) that also has sample code for reading the basic values.
+
+The code for getting values looks like the following: <br>
+```python
+import busio
+import digitalio
+import board
+import adafruit_mcp3xxx.mcp3008 as MCP
+from adafruit_mcp3xxx.analog_in import AnalogIn
+
+spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
+cs = digitalio.DigitalInOut(board.D8)
+mcp = MCP.MCP3008(spi, cs)
+```
+*Note that `SCK`, `MISO`, `MOSI` are all SPI (Serial Peripheral Interface) pins. <br>
+*Note that `board.D8` refers to RPi Pin 24 / BCM 8. Accordingly, BCM 25 = `board.D25` and BCM 5 = `board.D5`.
+
+
