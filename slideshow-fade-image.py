@@ -49,9 +49,9 @@ if is_RPi:
     GPIO.setmode(GPIO.BCM)
 
     # Rotary encoder
-    clk = 23
-    cnt = 24
-    rotary_button = 25
+    clk = ROTARY_ENCODER_CLOCKWISE
+    cnt = ROTARY_ENCODER_COUNTER
+    rotary_button = ROTARY_ENCODER_BUTTON
     GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(cnt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(rotary_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -72,13 +72,9 @@ if is_RPi:
 # Slideshow class which is the main class that runs and is listening for events
 class Slideshow:
     # Setup for the batch of images
-    TRANSITION_DELAY = 2000     # time between pictures in milliseconds
+    TRANSITION_DELAY = 2000  # time between pictures in milliseconds
     IS_TRANSITION_FORWARD = True
-
-    # Initialization for rotary encoder
-    if is_RPi:
-        clkLastState = GPIO.input(clk)
-        ROTARY_COUNT = 0                # Used exclusively for testing
+    ROTARY_COUNT = 0  # Used exclusively for testing
 
     def __init__(self, win):
         # Setup the window
@@ -98,9 +94,13 @@ class Slideshow:
 
         if is_RPi:
             self.window.bind(GPIO.add_event_detect(clk, GPIO.BOTH, callback=self.detected_rotary_change))
-            # Using GPIO.BOTH sorta works, but is super glitchy, will probably need an after loop
+            self.clkLastState = GPIO.input(clk)
+
+            # Using GPIO.BOTH and GPIO input state, however I have noticed glitches. This will need to be ironed out
+            # May need to use an after loop
             self.window.bind(GPIO.add_event_detect(rotary_button, GPIO.BOTH, callback=self.rotary_button_pressed))
-            # self.rotary_button_pressed = GPIO.input(rotary_button)  # not sure if this is correct
+            self.rotary_button_state = GPIO.input(rotary_button)
+            self.rotary_button_state = not self.rotary_button_state  # default is True, so set it to False
 
         # Initialization for database implementation
         self.sql_controller = SQLController(database=DB)
@@ -285,9 +285,9 @@ class Slideshow:
         if clkState != self.clkLastState:
             # Increment
             if cntState != clkState:
-                if (self.is_across_hikes):
+                if (self.rotary_button_state):
                     print('INCREMENT ACROSS ALL HIKES')
-                    self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
+                    # self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
                 else:
                     self.ROTARY_COUNT += 1
                     print("Rotary +: ", self.ROTARY_COUNT)
@@ -301,9 +301,9 @@ class Slideshow:
                     # self.update_tick()
             # Decrement
             else:
-                if (self.is_across_hikes):
+                if (self.rotary_button_state):
                     print('DECREMENT ACROSS ALL HIKES')
-                    self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
+                    # self.picture = self.sql_controller.next_time_picture_across_hikes(self.picture)
                 else:
                     self.ROTARY_COUNT -= 1
                     print("Rotary -: ", self.ROTARY_COUNT)
@@ -316,11 +316,18 @@ class Slideshow:
                     # self.update_text()
                     # self.update_tick()
         self.clkLastState = clkState
-        # sleep(0.005)
+        # TODO - try around with this in or out depending on the rotary encoder
+        sleep(0.01)
 
     def rotary_button_pressed(self, event):
         print('rotary pressed')
+
         self.is_across_hikes = not self.is_across_hikes
+        print('Is across hikes: {i}'.format(i=self.is_across_hikes))
+
+        self.rotary_button_state = not self.rotary_button_state
+        print('Rotary button state: {i}'.format(i=self.rotary_button_state))
+
         sleep(0.1)
 
 
