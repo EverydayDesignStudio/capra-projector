@@ -1,3 +1,6 @@
+_**This repo is archived.**<br><br>
+On **August 14, 2019** all the projector code was moved into and merged with [capra](https://github.com/EverydayDesignStudio/capra). <br> This is still a useful repository because one is able to see the full progression of building a simple slideshow program in Python._ <br><br>
+
 # Capra Explorer
 _Artefact that stores -and lets one browse- the archive of photos and data collected with the Capra Collector._
 
